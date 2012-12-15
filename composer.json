@@ -1,0 +1,12 @@
+{
+	"repositories": [
+	    {
+	        "type": "composer",
+	        "url": "https://packages.zendframework.com/"
+	    }
+	],
+    "require": {
+        "monolog/monolog": "1.2.*",
+        "zendframework/zend-config": "2.0.*"
+    }
+}
