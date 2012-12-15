@@ -1,6 +1,10 @@
 <?php
 namespace Evently\Queue;
 
+use Evently\Worker\Worker;
+
+use Evently\Message\Message;
+
 use Evently\Queue\Drivers\GearmanDriver;
 
 use Evently\Queue\Drivers\Driver;
@@ -13,13 +17,17 @@ class ExternalQueue extends Queue {
 		$this->_config = $config;
 	}
 	
-	function _doPullMessage($blocking=FALSE){
+	function run(){
+		$this->getDriver()->run();
+	}
+	
+	protected function _doPullMessage($blocking=FALSE){
 		return $this->getDriver()->pullMessage($blocking);
 	}
-	function _doPushMessage(Message $message){
+	protected function _doPushMessage(Message $message){
 		return $this->getDriver()->newMessage($message);
 	}
-	function _doRegisterWorker($topic, Worker $worker){
+	protected function _doRegisterWorker($topic, Worker $worker){
 		return $this->getDriver()->registerWorker($topic, $worker);
 	}
 	
@@ -39,4 +47,6 @@ class ExternalQueue extends Queue {
 	{
 	    $this->_driver = $_driver;
 	}
+	
+	
 }

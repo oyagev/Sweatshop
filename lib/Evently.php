@@ -47,6 +47,10 @@ class Evently{
 		$this->queueManager()->registerWorker($topic , $worker);
 	}
 	
+	public function run(){
+		$this->queueManager()->run();
+	}
+	
 	/**
 	 * @return Dispatcher
 	 */
@@ -57,6 +61,9 @@ class Evently{
 		return $this->dispatcher;
 	}
 	
+	/**
+	 * @return QueueManager
+	 */
 	protected function queueManager(){
 		if (!$this->queueManager){
 			$this->queueManager = new QueueManager($this->config);

@@ -10,37 +10,36 @@ use Evently\Worker\Worker;
 class QueueManager implements MessageableInterface{
 	
 	protected $inAppQueue;
-	protected $offAppSyncQueue;
-	protected $offAppBackgroundQueue;
+	protected $offAppQueue;
 	
 	
 	
 	public function __construct($config=array()){
 		$this->inAppQueue 				= new InternalQueue($config);
-		$this->offAppSyncQueue 			= new InternalQueue($config);
-		$this->offAppBackgroundQueue 	= new InternalQueue($config);
+		$this->offAppQueue 				= new ExternalQueue($config);
+		
 	}
 	
 	function newMessage(Message $message){
 		$responses = array_merge(
 				array() , 
-				$this->offAppBackgroundQueue->newMessage($message),
 				$this->inAppQueue->newMessage($message), 
-				$this->offAppSyncQueue->newMessage($message) );
+				$this->offAppQueue->newMessage($message) );
 		
 		return $responses;
 	}
 	
 	function registerWorker($topic, Worker $worker){
-		if ($worker->getBackground()){
-			$this->offAppBackgroundQueue->registerWorker($topic, $worker);
-		}elseif($worker->getEnv()==Worker::ENV_EXTERNAL){
-			$this->offAppSyncQueue->registerWorker($topic, $worker);
+		if ($worker->getBackground() || $worker->getEnv()==Worker::ENV_EXTERNAL){
+			$this->offAppQueue->registerWorker($topic, $worker);
 		}else{
 			$this->inAppQueue->registerWorker($topic, $worker);
 		}
 		return true;
 	}
 	
+	function run(){
+		$this->offAppQueue->run();
+	}
 	
 }

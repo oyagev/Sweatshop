@@ -10,26 +10,11 @@ use Evently\Worker\Worker;
 
 Evently::getInstance()->configure(array());
 
-class Pet{
-	function __construct(){
-		$res = Evently::getInstance()->dispatch(new Message('sys.obj.new', array(), $this));
-	}
-	
-	function say(){
-		return "Pet is saying...";
-	}
-}
-
-
-class Dog extends Pet{
-	
-	
-}
 
 class SimpleWorker extends Worker{
 	function _doExecute(Message $message){
 		//var_dump($message);
-		echo "I'm busy!!!";
+		echo "working...";
 	}
 	function _doTearUp(){
 		
@@ -39,9 +24,14 @@ class SimpleWorker extends Worker{
 	}
 }
 
-Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker());
+Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
+			'env' 			=> Worker::ENV_EXTERNAL , 
+			'background' 	=> TRUE
+)));
+Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
+'env' 			=> Worker::ENV_EXTERNAL ,
+'background' 	=> FALSE
+)));
 //var_dump(Evently::getInstance());
-
-$dog = new Dog();
-echo $dog->say();
+Evently::getInstance()->run();
 
