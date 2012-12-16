@@ -33,5 +33,5 @@ Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
 'background' 	=> FALSE
 )));
 //var_dump(Evently::getInstance());
-Evently::getInstance()->run();
+Evently::getInstance()->runWorkers();
 

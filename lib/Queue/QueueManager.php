@@ -38,8 +38,8 @@ class QueueManager implements MessageableInterface{
 		return true;
 	}
 	
-	function run(){
-		$this->offAppQueue->run();
+	function runWorkers(){
+		$this->offAppQueue->runWorkers();
 	}
 	
 }

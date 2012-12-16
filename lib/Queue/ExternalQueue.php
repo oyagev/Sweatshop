@@ -21,14 +21,14 @@ class ExternalQueue extends Queue {
 		$this->getDriver()->run();
 	}
 	
-	protected function _doPullMessage($blocking=FALSE){
-		return $this->getDriver()->pullMessage($blocking);
-	}
 	protected function _doPushMessage(Message $message){
 		return $this->getDriver()->newMessage($message);
 	}
 	protected function _doRegisterWorker($topic, Worker $worker){
 		return $this->getDriver()->registerWorker($topic, $worker);
+	}
+	protected function _doRunWorkers(){
+		return $this->getDriver()->runWorkers();
 	}
 	
 

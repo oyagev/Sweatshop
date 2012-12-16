@@ -8,10 +8,6 @@ class InternalQueue extends Queue{
 	
 	protected $_workers=array();
 	
-	protected function _doPullMessage($bloking=FALSE) {
-		;
-	}
-	
 	protected function _doPushMessage(Message $message){
 		$topic = $message->getTopic();
 		$results = array();
@@ -30,6 +26,10 @@ class InternalQueue extends Queue{
 		}
 		$this->_workers[$topic][] =  $worker;
 		return TRUE;
+	}
+	
+	protected function _doRunWorkers(){
+		;
 	}
 	
 	

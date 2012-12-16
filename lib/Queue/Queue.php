@@ -18,17 +18,7 @@ abstract class Queue implements MessageableInterface{
 	public function newMessage(Message $message){
 		return $this->_doPushMessage($message);
 	}
-	
-	/**
-	 * Pull message from queue
-	 * @param $blocking - if TRUE, block operation until message is pulled
-	 * @return Message | NULL
-	 * 
-	 */
-	public function pullMessage($blocking=FALSE){
-		return $this->_doPullMessage($blocking);
-	}
-	
+		
 	/**
 	 * Register worker for a topic
 	 * @param string $topic
@@ -38,10 +28,13 @@ abstract class Queue implements MessageableInterface{
 		return $this->_doRegisterWorker($topic, $worker);
 	}
 	
+	public function runWorkers(){
+		return $this->_doRunWorkers();
+	}
 	
 	abstract protected function _doPushMessage(Message $message);
 	
 	abstract protected function _doRegisterWorker($topic , Worker $worker);
 	
-	abstract protected function _doPullMessage($blocking=FALSE);
+	abstract protected function _doRunWorkers();
 }

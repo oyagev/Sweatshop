@@ -16,15 +16,8 @@ class GearmanDriver extends Driver{
 		
 	}
 	
-	public function run(){
-		while($this->worker()->work()){
-			
-		}
-	}
 	
-	protected function _doPullMessage($blocking=FALSE){
-		
-	}
+	
 	protected function _doPushMessage(Message $message){
 		$results = array();
 		//$task = $this->client()->addTask($message->getTopic() , serialize($message) , $results );
@@ -51,6 +44,11 @@ class GearmanDriver extends Driver{
 		
 		//Register a global "worker function" that invokes all workers
 		$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
+	}
+	public function _doRunWorkers(){
+		while($this->worker()->work()){
+				
+		}
 	}
 	
 	protected function client(){

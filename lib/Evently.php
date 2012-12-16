@@ -47,8 +47,8 @@ class Evently{
 		$this->queueManager()->registerWorker($topic , $worker);
 	}
 	
-	public function run(){
-		$this->queueManager()->run();
+	public function runWorkers(){
+		$this->queueManager()->runWorkers();
 	}
 	
 	/**
