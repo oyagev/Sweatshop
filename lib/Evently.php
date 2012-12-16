@@ -1,6 +1,8 @@
 <?php
 namespace Evently;
 
+use Evently\Config\Config;
+
 use Evently\Queue\QueueManager;
 
 use Evently\Dispatcher\Dispatcher;
@@ -29,11 +31,14 @@ class Evently{
 			
 	}
 	
-	public function __construct($config=array()){
-		
+	public function __construct(Config $config = NULL){
+		if (!$config){
+			$config = new Config(array());
+		}
+		$this->configure($config);
 	}
 	
-	public function configure($config){
+	public function configure(Config $config){
 		$this->config = $config;
 	}
 	

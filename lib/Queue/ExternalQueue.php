@@ -1,6 +1,8 @@
 <?php
 namespace Evently\Queue;
 
+use Evently\Config\Config;
+
 use Evently\Worker\Worker;
 
 use Evently\Message\Message;
@@ -12,14 +14,6 @@ use Evently\Queue\Drivers\Driver;
 class ExternalQueue extends Queue {
 	protected $_driver = NULL;
 	protected $_config;
-	
-	function __construct($config=array()){
-		$this->_config = $config;
-	}
-	
-	function run(){
-		$this->getDriver()->run();
-	}
 	
 	protected function _doPushMessage(Message $message){
 		return $this->getDriver()->newMessage($message);

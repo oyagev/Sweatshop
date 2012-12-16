@@ -2,13 +2,18 @@
 
 
 
+use Evently\Config\Config;
+
 require_once __DIR__.'/../main.php';
 
 use Evently\Message\Message;
 use Evently\Evently;
 use Evently\Worker\Worker;
 
-Evently::getInstance()->configure(array());
+include(\Evently\CONFIG_PATH . '/config.php');
+
+$config = new Config($config); 
+Evently::getInstance()->configure($config);
 
 class Pet{
 	function __construct(){

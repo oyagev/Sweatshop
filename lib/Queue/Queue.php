@@ -1,14 +1,17 @@
 <?php
 namespace Evently\Queue;
 
+use Evently\Config\Config;
+
 use Evently\Message\Message;
 use Evently\Interfaces\MessageableInterface;
 use Evently\Worker\Worker;
 
 abstract class Queue implements MessageableInterface{
 	
-	public function __construct($config){
-		
+	protected $_config;
+	public function __construct(Config $config){
+		$this->_config = $config;
 	}
 	
 	/**

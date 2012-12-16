@@ -1,6 +1,8 @@
 <?php
 namespace Evently\Queue\Drivers;
 
+use Evently\Config\Config;
+
 use Evently\Worker\Worker;
 
 use Evently\Message\Message;
@@ -12,7 +14,7 @@ class GearmanDriver extends Driver{
 	protected $_workersQueue = array();
 	protected $_workersStack = array();
 	
-	function __construct($config){
+	function __construct(Config $config){
 		
 	}
 	

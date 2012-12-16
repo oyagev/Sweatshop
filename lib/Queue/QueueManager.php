@@ -1,6 +1,8 @@
 <?php
 namespace Evently\Queue;
 
+use Evently\Config\Config;
+
 use Evently\Queue\Queue;
 
 use Evently\Message\Message;
@@ -14,7 +16,7 @@ class QueueManager implements MessageableInterface{
 	
 	
 	
-	public function __construct($config=array()){
+	public function __construct(Config $config){
 		$this->inAppQueue 				= new InternalQueue($config);
 		$this->offAppQueue 				= new ExternalQueue($config);
 		
