@@ -16,7 +16,7 @@ class QueueManager implements MessageableInterface{
 	
 	
 	
-	public function __construct(Config $config){
+	public function __construct($di){
 		$this->inAppQueue 				= new InternalQueue($config);
 		$this->offAppQueue 				= new ExternalQueue($config);
 		

@@ -1,0 +1,5 @@
+<phpunit
+	bootstrap="../../main.php"
+	varbose="true"
+>
+</phpunit>

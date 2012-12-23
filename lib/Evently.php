@@ -1,6 +1,14 @@
 <?php
 namespace Evently;
 
+use Monolog\Handler\SyslogHandler;
+
+use Monolog\Handler\StreamHandler;
+
+use Monolog\Logger;
+
+use Evently\Config\Exception;
+
 use Evently\Config\Config;
 
 use Evently\Queue\QueueManager;
@@ -14,9 +22,7 @@ use Evently\Worker\Worker;
 
 class Evently{
 	
-	protected $dispatcher = NULL ;
-	protected $queueManager = NULL;
-	protected $config = NULL;
+	protected $_di = NULL;
 	static protected $instance;
 	
 	/**
@@ -31,15 +37,41 @@ class Evently{
 			
 	}
 	
-	public function __construct(Config $config = NULL){
-		if (!$config){
-			$config = new Config(array());
+	public function __construct($config=NULL){
+		if ($config){
+			$this->configure($config);
 		}
-		$this->configure($config);
+		
 	}
 	
-	public function configure(Config $config){
-		$this->config = $config;
+	public function configure($config){
+		$di = new \Pimple();
+		$di['config'] = $this->buildConfigObj($config);
+		$di['log'] = $di->share(function($di){
+			$config = $di['config'];
+			$log = new Logger(__CLASS__);
+			switch($config['log']['output']){
+				case 'stream' :
+					if ($config['log']['logfile']){
+						$logHandler = new StreamHandler($config['log']['logfile'], $config['log']['level']);
+						break;
+					}
+					
+				case 'syslog':
+					$logHandler = new SyslogHandler(__CLASS__);
+					break;
+				default:
+					$logHandler = new StreamHandler("php://stdout", $config['log']['level']);
+			}
+			$log->pushHandler($logHandler);
+			return $log;
+		});
+		
+		$this->_di = $di;
+		
+		$log = $di['log'];
+		$log->debug('Done configuring');
+		
 	}
 	
 	
@@ -71,11 +103,30 @@ class Evently{
 	 */
 	protected function queueManager(){
 		if (!$this->queueManager){
-			$this->queueManager = new QueueManager($this->config);
+			$this->_di['log']->debug('Setting up Queue Manager');
+			$this->queueManager = new QueueManager($this->_di);
 		}
 		return $this->queueManager;
 	}
 	
+	
+	private function buildConfigObj($mixedConfigParam){
+		if (is_string($mixedConfigParam) ){
+			if (file_exists($mixedConfigParam)){
+				include $config;
+				$config = new Config($config);
+			}else{
+				throw new Exception("Unable to find config file: ". $config);
+			}
+		}elseif(is_array($mixedConfigParam)){
+			$config = new Config($mixedConfigParam);
+		}elseif($mixedConfigParam instanceOf Config){
+			$config = $mixedConfigParam;
+		}else{
+			throw new Exception("Unable to read configuration");
+		}
+		return $config;
+	}
 	
 	
 	

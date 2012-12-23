@@ -6,6 +6,8 @@
 	    }
 	],
     "require": {
-        "monolog/monolog": "1.2.*"
+        "monolog/monolog": "1.2.*",
+        "zendframework/zend-config": "2.0.*",
+        "pimple/pimple" : "*"
     }
 }
