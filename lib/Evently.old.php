@@ -1,5 +1,5 @@
 <?php
-namespace Evently;
+namespace Sweatshop;
 
 use Monolog\Handler\SyslogHandler;
 
@@ -7,26 +7,26 @@ use Monolog\Handler\StreamHandler;
 
 use Monolog\Logger;
 
-use Evently\Config\Exception;
+use Sweatshop\Config\Exception;
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
-use Evently\Queue\QueueManager;
+use Sweatshop\Queue\QueueManager;
 
-use Evently\Dispatcher\Dispatcher;
+use Sweatshop\Dispatcher\Dispatcher;
 
-use Evently\Message\Message;
+use Sweatshop\Message\Message;
 
-use Evently\Worker\Worker;
+use Sweatshop\Worker\Worker;
 
 
-class Evently{
+class Sweatshop_old{
 	
 	protected $_di = NULL;
 	static protected $instance;
 	
 	/**
-	 * @return Evently\Evently
+	 * @return Sweatshop\Sweatshop
 	 */
 	static public function getInstance(){
 		if (!static::$instance) {

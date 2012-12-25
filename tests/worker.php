@@ -4,11 +4,11 @@
 
 require_once __DIR__.'/../main.php';
 
-use Evently\Message\Message;
-use Evently\Evently;
-use Evently\Worker\Worker;
+use Sweatshop\Message\Message;
+use Sweatshop\Sweatshop;
+use Sweatshop\Worker\Worker;
 
-Evently::getInstance()->configure(array());
+Sweatshop::getInstance()->configure(array());
 
 
 class SimpleWorker extends Worker{
@@ -24,14 +24,14 @@ class SimpleWorker extends Worker{
 	}
 }
 
-Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
+Sweatshop::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
 			'env' 			=> Worker::ENV_EXTERNAL , 
 			'background' 	=> TRUE
 )));
-Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
+Sweatshop::getInstance()->registerWorker('sys.obj.new', new SimpleWorker(array(
 'env' 			=> Worker::ENV_EXTERNAL ,
 'background' 	=> FALSE
 )));
-//var_dump(Evently::getInstance());
-Evently::getInstance()->runWorkers();
+//var_dump(Sweatshop::getInstance());
+Sweatshop::getInstance()->runWorkers();
 

@@ -1,7 +1,7 @@
 <?php
-namespace Evently\Queue\Drivers;
+namespace Sweatshop\Queue\Drivers;
 
-use Evently\Queue\Queue;
+use Sweatshop\Queue\Queue;
 
 abstract class Driver extends Queue{
 	

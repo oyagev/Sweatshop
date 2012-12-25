@@ -1,15 +1,15 @@
 <?php
-namespace Evently\Queue;
+namespace Sweatshop\Queue;
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
-use Evently\Worker\Worker;
+use Sweatshop\Worker\Worker;
 
-use Evently\Message\Message;
+use Sweatshop\Message\Message;
 
-use Evently\Queue\Drivers\GearmanDriver;
+use Sweatshop\Queue\Drivers\GearmanDriver;
 
-use Evently\Queue\Drivers\Driver;
+use Sweatshop\Queue\Drivers\Driver;
 
 class ExternalQueue extends Queue {
 	protected $_driver = NULL;

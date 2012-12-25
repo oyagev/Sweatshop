@@ -1,13 +1,13 @@
 <?php
-namespace Evently\Queue;
+namespace Sweatshop\Queue;
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
-use Evently\Queue\Queue;
+use Sweatshop\Queue\Queue;
 
-use Evently\Message\Message;
-use Evently\Interfaces\MessageableInterface;
-use Evently\Worker\Worker;
+use Sweatshop\Message\Message;
+use Sweatshop\Interfaces\MessageableInterface;
+use Sweatshop\Worker\Worker;
 
 class QueueManager implements MessageableInterface{
 	
@@ -22,7 +22,7 @@ class QueueManager implements MessageableInterface{
 		
 	}
 	
-	function newMessage(Message $message){
+	function pushMessage(Message $message){
 		$responses = array_merge(
 				array() , 
 				$this->inAppQueue->newMessage($message), 

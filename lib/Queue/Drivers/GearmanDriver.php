@@ -1,11 +1,11 @@
 <?php
-namespace Evently\Queue\Drivers;
+namespace Sweatshop\Queue\Drivers;
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
-use Evently\Worker\Worker;
+use Sweatshop\Worker\Worker;
 
-use Evently\Message\Message;
+use Sweatshop\Message\Message;
 
 class GearmanDriver extends Driver{
 	

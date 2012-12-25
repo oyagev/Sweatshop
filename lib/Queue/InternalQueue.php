@@ -1,8 +1,8 @@
 <?php
-namespace Evently\Queue;
+namespace Sweatshop\Queue;
 
-use Evently\Message\Message;
-use Evently\Worker\Worker;
+use Sweatshop\Message\Message;
+use Sweatshop\Worker\Worker;
 
 class InternalQueue extends Queue{
 	

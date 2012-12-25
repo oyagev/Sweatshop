@@ -1,5 +1,5 @@
 <?php
-namespace Evently\Config;
+namespace Sweatshop\Config;
 
 class Exception extends \RuntimeException{
 	

@@ -2,21 +2,21 @@
 
 use Monolog\Logger;
 
-use Evently\Evently;
+use Sweatshop\Sweatshop;
 
-class EventlyTest extends \PHPUnit_Framework_TestCase{
+class SweatshopTest extends \PHPUnit_Framework_TestCase{
 	
 	function testBasicBuild(){
-		$evently = new Evently();
-		$this->assertInstanceOf('Evently\Evently', $evently);
+		$Sweatshop = new Sweatshop();
+		$this->assertInstanceOf('Sweatshop\Sweatshop', $Sweatshop);
 		
 	}
 	
 	function testArrayConfig(){
-		$evently = new Evently();
+		$Sweatshop = new Sweatshop();
 		
-		$tmpfile = tempnam(sys_get_temp_dir(),'evently_');
-		$evently->configure(array(
+		$tmpfile = tempnam(sys_get_temp_dir(),'Sweatshop_');
+		$Sweatshop->configure(array(
 			'log' => array(
 				'output' => 'stream',
 				'logfile' => $tmpfile,

@@ -1,5 +1,5 @@
 <?php
-namespace Evently\Message;
+namespace Sweatshop\Message;
 
 class Message{
 	

@@ -2,22 +2,22 @@
 
 
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
 require_once __DIR__.'/../main.php';
 
-use Evently\Message\Message;
-use Evently\Evently;
-use Evently\Worker\Worker;
+use Sweatshop\Message\Message;
+use Sweatshop\Sweatshop;
+use Sweatshop\Worker\Worker;
 
-include(\Evently\CONFIG_PATH . '/config.php');
+include(\Sweatshop\CONFIG_PATH . '/config.php');
 
 $config = new Config($config); 
-Evently::getInstance()->configure($config);
+Sweatshop::getInstance()->configure($config);
 
 class Pet{
 	function __construct(){
-		$res = Evently::getInstance()->dispatch(new Message('sys.obj.new', array(), $this));
+		$res = Sweatshop::getInstance()->dispatch(new Message('sys.obj.new', array(), $this));
 	}
 	
 	function say(){
@@ -44,8 +44,8 @@ class SimpleWorker extends Worker{
 	}
 }
 
-Evently::getInstance()->registerWorker('sys.obj.new', new SimpleWorker());
-//var_dump(Evently::getInstance());
+Sweatshop::getInstance()->registerWorker('sys.obj.new', new SimpleWorker());
+//var_dump(Sweatshop::getInstance());
 
 $dog = new Dog();
 echo $dog->say();

@@ -1,8 +1,8 @@
 <?php
-namespace Evently\Worker;
+namespace Sweatshop\Worker;
 
-use Evently\Interfaces\MessageableInterface;
-use Evently\Message\Message;
+use Sweatshop\Interfaces\MessageableInterface;
+use Sweatshop\Message\Message;
 
 abstract class Worker implements MessageableInterface{
 	
@@ -35,7 +35,7 @@ abstract class Worker implements MessageableInterface{
 		return $this->_doExecute($message);
 	}
 	
-	function newMessage(Message $message){
+	function pushMessage(Message $message){
 		return $this->execute($message);
 	}
 	

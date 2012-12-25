@@ -1,12 +1,12 @@
 <?php
-namespace Evently\Dispatcher;
+namespace Sweatshop\Dispatcher;
 
 use Monolog\Logger;
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
-use Evently\Message\Message;
-use Evently\Queue\QueueManager;
+use Sweatshop\Message\Message;
+use Sweatshop\Queue\QueueManager;
 
 class Dispatcher{
 	

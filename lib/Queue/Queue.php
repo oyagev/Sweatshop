@@ -1,11 +1,11 @@
 <?php
-namespace Evently\Queue;
+namespace Sweatshop\Queue;
 
-use Evently\Config\Config;
+use Sweatshop\Config\Config;
 
-use Evently\Message\Message;
-use Evently\Interfaces\MessageableInterface;
-use Evently\Worker\Worker;
+use Sweatshop\Message\Message;
+use Sweatshop\Interfaces\MessageableInterface;
+use Sweatshop\Worker\Worker;
 
 abstract class Queue implements MessageableInterface{
 	
@@ -18,7 +18,7 @@ abstract class Queue implements MessageableInterface{
 	 * Push message to the Queue
 	 * @param Message $message
 	 */
-	public function newMessage(Message $message){
+	public function pushMessage(Message $message){
 		return $this->_doPushMessage($message);
 	}
 		

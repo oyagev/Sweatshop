@@ -1,10 +1,10 @@
 <?php
 
-namespace Evently\Interfaces; 
+namespace Sweatshop\Interfaces; 
 
-use Evently\Message\Message;
+use Sweatshop\Message\Message;
 
 
 interface MessageableInterface{
-	public function newMessage(Message $message);
+	public function pushMessage(Message $message);
 }
