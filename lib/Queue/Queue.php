@@ -10,8 +10,8 @@ use Sweatshop\Worker\Worker;
 abstract class Queue implements MessageableInterface{
 	
 	protected $_config;
-	public function __construct(Config $config){
-		$this->_config = $config;
+	public function __construct(){
+		
 	}
 	
 	/**
