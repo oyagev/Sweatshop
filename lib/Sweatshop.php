@@ -46,9 +46,50 @@ class Sweatshop{
 		
 	}
 	
-	function runWorkers(){
+	function runWorkers($options=array()){
+		$options = array_merge(array(
+			'threads_per_queue' => 1, 
+			'threads_per_worker' => 0, 
+			'wait_threads_exit' => true
+		) , $options);
+		
+		if ($options['threads_per_queue'] == 0 && $options['threads_per_queue'] == 0){
+			$this->getLogger()->warn('Launching workers without threads support is not recommended');
+		}
+		
 		foreach ($this->_queues as $queue){
-			$queue->runWorkers();
+			$queue->runWorkers($options);
+		}
+		
+		
+		
+		while ($options['wait_threads_exit'] && pcntl_wait($status)!=-1){
+			var_dump($status);
+		}
+		
+		
+		return;
+		
+		declare(ticks=1);
+		$children = array();
+		foreach ($this->_queues as $queue){
+			
+			
+			$pid = pcntl_fork();
+			if ($pid == -1) {
+				die("could not fork");
+			} else if ($pid) {
+				// we are the parent
+				
+			} else {
+				$queue->runWorkers($threads_per_queue, $threads_per_worker);
+				break;
+			}
+			
+		}
+		
+		while ($wait_exit && pcntl_wait($status)!=-1){
+			var_dump($status);
 		}
 	}
 	

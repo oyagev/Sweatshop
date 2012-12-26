@@ -49,9 +49,32 @@ abstract class Queue implements MessageableInterface{
 		return $res;
 	}
 	
-	public function runWorkers(){
-		$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
-		return $this->_doRunWorkers();
+	public function runWorkers($options){
+		
+		if ($options['threads_per_queue'] > 0){
+			declare(ticks=1);
+			for ($i=0;$i<$options['threads_per_queue'] ; $i++){
+				
+				$children = array();
+				$pid = pcntl_fork();
+				if ($pid == -1) {
+					$this->getLogger()->fatal(sprintf('Queue "%s" Cannot fork a new thread', get_class($this)));
+				} else if ($pid) {
+					// we are the parent - do nothing
+			
+				} else {
+					$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
+					return $this->_doRunWorkers($options);
+					break;
+				}
+			}
+		}elseif ($options['threads_per_worker'] > 0){
+			
+		}else{
+			$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
+			return $this->_doRunWorkers($options);
+		}
+		
 	}
 	
 	/**

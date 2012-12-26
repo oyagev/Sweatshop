@@ -18,12 +18,16 @@ $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
 $sweatshop->setLogger($logger);
 
-$queue = new GearmanQueue($sweatshop);
+
 
 require_once 'BackgroundPrintWorker.php';
 
+$queue = new GearmanQueue($sweatshop);
 $worker = new BackgroundPrintWorker($sweatshop);
 $queue->registerWorker('topic:test', $worker);
 $sweatshop->addQueue($queue);
 
-$sweatshop->runWorkers();
+
+$sweatshop->runWorkers(array(
+	'threads_per_queue' => 4		
+));
