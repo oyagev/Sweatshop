@@ -70,7 +70,7 @@ class Sweatshop_old{
 		$this->_di = $di;
 		
 		$log = $di['log'];
-		$log->debug('Done configuring');
+		$log->info('Done configuring');
 		
 	}
 	
@@ -103,7 +103,7 @@ class Sweatshop_old{
 	 */
 	protected function queueManager(){
 		if (!$this->queueManager){
-			$this->_di['log']->debug('Setting up Queue Manager');
+			$this->_di['log']->info('Setting up Queue Manager');
 			$this->queueManager = new QueueManager($this->_di);
 		}
 		return $this->queueManager;

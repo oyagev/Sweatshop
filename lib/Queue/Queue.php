@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop\Queue;
 
+use Monolog\Logger;
+
 use Sweatshop\Sweatshop;
 
 use Sweatshop\Config\Config;
@@ -28,6 +30,8 @@ abstract class Queue implements MessageableInterface{
 	 * @param Message $message
 	 */
 	public function pushMessage(Message $message){
+		$this->getLogger()->info(sprintf('Queue "%s" Pushing message id "%s"', get_class($this),$message->getId()));
+		
 		return $this->_doPushMessage($message);
 	}
 		
@@ -37,7 +41,8 @@ abstract class Queue implements MessageableInterface{
 	 * @param Worker $worker
 	 */
 	public function registerWorker($topic , Worker $worker){
-		$this->_di['logger']->debug(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
+		$this->getLogger()->info(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
+		
 		array_push($this->_workers , $worker);
 		$res = $this->_doRegisterWorker($topic, $worker);
 		
@@ -45,7 +50,15 @@ abstract class Queue implements MessageableInterface{
 	}
 	
 	public function runWorkers(){
+		$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
 		return $this->_doRunWorkers();
+	}
+	
+	/**
+	 * @return Logger
+	 */
+	public function getLogger(){
+		return $this->_di['logger'];
 	}
 	
 	abstract protected function _doPushMessage(Message $message);

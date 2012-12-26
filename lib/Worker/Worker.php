@@ -31,11 +31,18 @@ abstract class Worker implements MessageableInterface{
 	}
 	
 	public function execute(Message $message){
+		$this->getLogger()->info(sprintf('Worker "%s" executing message "%s"',get_class($this),$message->getId()));
 		return $this->_doExecute($message);
 	}
 	
 	function pushMessage(Message $message){
 		return $this->execute($message);
+	}
+	/**
+	 * @return Logger
+	 */
+	public function getLogger(){
+		return $this->_di['logger'];
 	}
 	
 	

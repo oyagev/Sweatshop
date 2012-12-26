@@ -26,6 +26,7 @@ class Sweatshop{
 		$this->setDependencies($di);
 	}
 	function pushMessage(Message $message){
+		$this->getLogger()->info(sprintf('Sweatshop pushing message id "%s"',$message->getId()), array('message_id'=>$message->getId()));
 		$result = array();
 		foreach ($this->_queues as $queue){
 			$result = array_merge($result, $queue->pushMessage($message));
@@ -33,7 +34,7 @@ class Sweatshop{
 		return $result;
 	}
 	function addQueue(Queue $queue){
-		$this->getLogger()->debug('Adding queue: '.get_class($queue));
+		$this->getLogger()->info('Adding queue: '.get_class($queue));
 		$queue->setDependencies($this->_di);
 		array_push($this->_queues, $queue);
 	}
