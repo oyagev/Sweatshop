@@ -14,12 +14,6 @@ class GearmanQueue extends Queue{
 	protected $_workersQueue = array();
 	protected $_workersStack = array();
 	
-	function __construct($options = array()){
-		
-	}
-	
-	
-	
 	protected function _doPushMessage(Message $message){
 		$results = array();
 		//$task = $this->client()->addTask($message->getTopic() , serialize($message) , $results );

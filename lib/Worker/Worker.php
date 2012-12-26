@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop\Worker;
 
+use Sweatshop\Sweatshop;
+
 use Sweatshop\Interfaces\MessageableInterface;
 use Sweatshop\Message\Message;
 
@@ -11,8 +13,8 @@ abstract class Worker implements MessageableInterface{
 	protected $_di;
 	
 	
-	public function __construct($config=array()){
-		$this->configure($config);
+	public function __construct(Sweatshop $sweatshop){
+		$this->setDependencies($sweatshop->getDependencies());
 		$this->_doTearUp();
 	}
 	

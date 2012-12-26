@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop\Queue;
 
+use Sweatshop\Sweatshop;
+
 use Sweatshop\Config\Config;
 
 use Sweatshop\Message\Message;
@@ -11,8 +13,10 @@ abstract class Queue implements MessageableInterface{
 	
 	protected $_config;
 	protected $_di;
-	public function __construct(){
-		
+	private $_workers = array();
+	
+	public function __construct(Sweatshop $sweatshop){
+		$this->setDependencies($sweatshop->getDependencies());
 	}
 	
 	function setDependencies(\Pimple $di){
@@ -33,8 +37,11 @@ abstract class Queue implements MessageableInterface{
 	 * @param Worker $worker
 	 */
 	public function registerWorker($topic , Worker $worker){
-		$worker->setDependencies($this->_di);
-		return $this->_doRegisterWorker($topic, $worker);
+		$this->_di['logger']->debug(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
+		array_push($this->_workers , $worker);
+		$res = $this->_doRegisterWorker($topic, $worker);
+		
+		return $res;
 	}
 	
 	public function runWorkers(){

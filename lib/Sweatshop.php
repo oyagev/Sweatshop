@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop;
 
+use Monolog\Handler\NullHandler;
+
 use Monolog\Logger;
 
 use Sweatshop\Queue\Queue;
@@ -13,7 +15,15 @@ class Sweatshop{
 	protected $_di = NULL;
 	
 	function __construct(){
-		$this->_di = new \Pimple();
+		
+		$di = new \Pimple();
+		$di['logger'] = $di->share(function($di){
+			$logger = new Logger('Sweatshop');
+			$logger->pushHandler(new NullHandler());
+			return $logger;
+			
+		}) ;
+		$this->setDependencies($di);
 	}
 	function pushMessage(Message $message){
 		$result = array();
@@ -23,6 +33,7 @@ class Sweatshop{
 		return $result;
 	}
 	function addQueue(Queue $queue){
+		$this->getLogger()->debug('Adding queue: '.get_class($queue));
 		$queue->setDependencies($this->_di);
 		array_push($this->_queues, $queue);
 	}
@@ -31,6 +42,7 @@ class Sweatshop{
 	}
 	function getLogger(){
 		return $this->_di['logger'];
+		
 	}
 	
 	function runWorkers(){
@@ -38,4 +50,13 @@ class Sweatshop{
 			$queue->runWorkers();
 		}
 	}
+	
+	function setDependencies(\Pimple $di){
+		$this->_di = $di;
+	}
+	
+	function getDependencies(){
+		return $this->_di;
+	}
+	
 }
