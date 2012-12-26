@@ -13,7 +13,7 @@ class InternalQueue extends Queue{
 		$results = array();
 		if (!empty($this->_workers[$topic])){
 			foreach($this->_workers[$topic] as $worker){
-				$results[] = $worker->newMessage($message);
+				$results[] = $worker->pushMessage($message);
 			}
 		}
 		return $results;

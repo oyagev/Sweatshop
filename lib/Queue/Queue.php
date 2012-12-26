@@ -10,8 +10,13 @@ use Sweatshop\Worker\Worker;
 abstract class Queue implements MessageableInterface{
 	
 	protected $_config;
+	protected $_di;
 	public function __construct(){
 		
+	}
+	
+	function setDependencies(\Pimple $di){
+		$this->_di = $di;
 	}
 	
 	/**
@@ -28,6 +33,7 @@ abstract class Queue implements MessageableInterface{
 	 * @param Worker $worker
 	 */
 	public function registerWorker($topic , Worker $worker){
+		$worker->setDependencies($this->_di);
 		return $this->_doRegisterWorker($topic, $worker);
 	}
 	

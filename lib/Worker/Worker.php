@@ -6,25 +6,22 @@ use Sweatshop\Message\Message;
 
 abstract class Worker implements MessageableInterface{
 	
-	const ENV_INTERNAL = 'env/internal';
-	const ENV_EXTERNAL = 'env/external';
 	
-	protected $env;
-	protected $background;
+	
+	protected $_di;
+	
 	
 	public function __construct($config=array()){
 		$this->configure($config);
 		$this->_doTearUp();
 	}
 	
-	public function configure($config=array()){
-		$defConfig = array(
-			'env' 			=> self::ENV_INTERNAL , 
-			'background' 	=> false
-		);
-		$config = array_merge($defConfig,$config);
-		$this->setEnv($config['env']);
-		$this->setBackground($config['background']);
+	function setDependencies(\Pimple $di){
+		$this->_di = $di;
+	}
+	
+	public function configure(){
+		
 	}
 	
 	public function __destruct(){
@@ -41,27 +38,11 @@ abstract class Worker implements MessageableInterface{
 	
 	
 	
-	abstract protected function _doTearUp();
+	protected function _doTearUp(){
+		
+	}
+	protected function _doTearDown(){
+	
+	}
 	abstract protected function _doExecute(Message $message);
-	abstract protected function _doTearDown();
-
-	public function getEnv()
-	{
-	    return $this->env;
-	}
-
-	public function setEnv($env)
-	{
-	    $this->env = $env;
-	}
-
-	public function getBackground()
-	{
-	    return $this->background;
-	}
-
-	public function setBackground($background)
-	{
-	    $this->background = $background;
-	}
 }

@@ -1,5 +1,5 @@
 <?php
-namespace Sweatshop\Queue\Drivers;
+namespace Sweatshop\Queue;
 
 use Sweatshop\Config\Config;
 
@@ -7,14 +7,14 @@ use Sweatshop\Worker\Worker;
 
 use Sweatshop\Message\Message;
 
-class GearmanDriver extends Driver{
+class GearmanQueue extends Queue{
 	
 	protected $_gmclient = NULL;
 	protected $_gmworker = NULL;
 	protected $_workersQueue = array();
 	protected $_workersStack = array();
 	
-	function __construct(Config $config){
+	function __construct($options = array()){
 		
 	}
 	
@@ -30,6 +30,7 @@ class GearmanDriver extends Driver{
 		return array();
 	}
 	protected function _doRegisterWorker($topic, Worker $worker){
+		
 		$workerClass = get_class($worker);
 		$worker_topic = "$topic:$workerClass" ;
 		if (empty($this->_workersQueue[$topic])){
