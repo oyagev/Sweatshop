@@ -26,7 +26,9 @@ require_once 'EchoWorker.php';
 $worker = new EchoWorker($sweatshop);
 $queue->registerWorker('topic:test', $worker);
 $sweatshop->addQueue($queue);
-$sweatshop->addQueue(new GearmanQueue($sweatshop));
+
+$queue2 = new GearmanQueue($sweatshop, array('port'=>32));
+$sweatshop->addQueue($queue2);
 
 
 

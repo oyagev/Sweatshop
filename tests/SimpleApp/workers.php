@@ -22,7 +22,7 @@ $sweatshop->setLogger($logger);
 
 require_once 'BackgroundPrintWorker.php';
 
-$queue = new GearmanQueue($sweatshop);
+$queue = new GearmanQueue($sweatshop,array('port'=>432));
 $worker = new BackgroundPrintWorker($sweatshop);
 $queue->registerWorker('topic:test', $worker);
 $sweatshop->addQueue($queue);

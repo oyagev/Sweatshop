@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop\Queue;
 
+use Sweatshop\Queue\Exceptions\QueueServerUnavailableException;
+
 use Sweatshop\Config\Config;
 
 use Sweatshop\Worker\Worker;
@@ -13,6 +15,15 @@ class GearmanQueue extends Queue{
 	protected $_gmworker = NULL;
 	protected $_workersQueue = array();
 	protected $_workersStack = array();
+	protected $_options = array();
+	
+	function __construct($sweatshop,$options=array()){
+		parent::__construct($sweatshop,$options);
+		$this->_options = array_merge(array(
+			'host' => 'localhost',
+			'port' => '4730'		
+		),$options);
+	}
 	
 	protected function _doPushMessage(Message $message){
 		$results = array();
@@ -42,7 +53,7 @@ class GearmanQueue extends Queue{
 		//Register a global "worker function" that invokes all workers
 		$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
 	}
-	public function _doRunWorkers(){
+	public function _doRunWorkers($options=array()){
 		while($this->worker()->work()){
 				
 		}
@@ -51,7 +62,12 @@ class GearmanQueue extends Queue{
 	protected function client(){
 		if (!$this->_gmclient){
 			$this->_gmclient = new \GearmanClient();
-			$this->_gmclient->addServer();
+			$this->_gmclient->addServer($this->_options['host'] , $this->_options['port'] );
+			$res = @$this->_gmclient->ping('ping');
+			if (!$res){
+				$this->getLogger()->err(sprintf('Queue %s Failed to connect to a Gearman server',get_class($this)));
+				throw new QueueServerUnavailableException("Unable to connect to a Gearman server");
+			}
 		}
 		return $this->_gmclient;
 	}
@@ -60,8 +76,17 @@ class GearmanQueue extends Queue{
 	 */
 	protected function worker(){
 		if (!$this->_gmworker){
+			
+			//Ugly way to check if server available
+			if (!$this->client()){
+				$this->getLogger()->err(sprintf('Queue %s Failed to connect to a Gearman server',get_class($this)));
+				throw new QueueServerUnavailableException("Unable to connect to a Gearman server");
+			}
 			$this->_gmworker = new \GearmanWorker();
-			$this->_gmworker->addServer();
+			$this->_gmworker->addServer($this->_options['host'] , $this->_options['port'] );
+			
+			//check if server available
+			
 		}
 		return $this->_gmworker;
 	}
