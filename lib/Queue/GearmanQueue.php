@@ -15,14 +15,14 @@ class GearmanQueue extends Queue{
 	protected $_gmworker = NULL;
 	protected $_workersQueue = array();
 	protected $_workersStack = array();
-	protected $_options = array();
+	
 	
 	function __construct($sweatshop,$options=array()){
 		parent::__construct($sweatshop,$options);
 		$this->_options = array_merge(array(
 			'host' => 'localhost',
 			'port' => '4730'		
-		),$options);
+		),$this->_options,$options);
 	}
 	
 	protected function _doPushMessage(Message $message){
@@ -54,8 +54,9 @@ class GearmanQueue extends Queue{
 		$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
 	}
 	public function _doRunWorkers($options=array()){
-		while($this->worker()->work()){
-				
+		while(!$this->gracefulKill() && $this->worker()->work()){
+			
+			$this->workCycleEnd();
 		}
 	}
 	

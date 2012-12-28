@@ -27,6 +27,7 @@ abstract class Worker implements MessageableInterface{
 	}
 	
 	public function __destruct(){
+		$this->getLogger()->info(sprintf('Worker "%s": tearing down',get_class($this)));
 		$this->_doTearDown();
 	}
 	

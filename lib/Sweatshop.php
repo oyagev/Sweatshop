@@ -66,31 +66,6 @@ class Sweatshop{
 		while ($options['wait_threads_exit'] && pcntl_wait($status)!=-1){
 			var_dump($status);
 		}
-		
-		
-		return;
-		
-		declare(ticks=1);
-		$children = array();
-		foreach ($this->_queues as $queue){
-			
-			
-			$pid = pcntl_fork();
-			if ($pid == -1) {
-				die("could not fork");
-			} else if ($pid) {
-				// we are the parent
-				
-			} else {
-				$queue->runWorkers($threads_per_queue, $threads_per_worker);
-				break;
-			}
-			
-		}
-		
-		while ($wait_exit && pcntl_wait($status)!=-1){
-			var_dump($status);
-		}
 	}
 	
 	function setDependencies(\Pimple $di){

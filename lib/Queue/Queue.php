@@ -16,9 +16,18 @@ abstract class Queue implements MessageableInterface{
 	protected $_config;
 	protected $_di;
 	private $_workers = array();
+	protected $_options = array();
 	
 	public function __construct(Sweatshop $sweatshop, $options=array()){
 		$this->setDependencies($sweatshop->getDependencies());
+		$this->_options = array_merge(array(
+			'max_work_cycles' => -1
+		),$this->_options , $options);
+		
+	}
+	
+	public function __destruct(){
+		$this->getLogger()->info(sprintf('Queue "%s": tearing down',get_class($this)));
 	}
 	
 	function setDependencies(\Pimple $di){
@@ -34,7 +43,7 @@ abstract class Queue implements MessageableInterface{
 		
 		try{
 			return $this->_doPushMessage($message);
-		}catch (\RuntimeException $e){
+		}catch (\Exception $e){
 			$this->getLogger()->err(sprintf('Unable to push message into queue "%s". Message was: %s',get_class($this),$e->getMessage()));
 			return array();
 		}
@@ -51,10 +60,11 @@ abstract class Queue implements MessageableInterface{
 		array_push($this->_workers , $worker);
 		try{
 			$res = $this->_doRegisterWorker($topic, $worker);
-		}catch (\RuntimeException $e){
-			$this->getLogger()->err(sprintf('Unable to register worker on queue "%s". Message was: %s',get_class($queue),$e->getMessage()));
+			return $res;
+		}catch (\Exception $e){
+			$this->getLogger()->err(sprintf('Unable to register worker on queue "%s". Message was: %s',get_class($this),$e->getMessage()));
 		}
-		return $res;
+		
 	}
 	
 	public function runWorkers($options){
@@ -83,8 +93,8 @@ abstract class Queue implements MessageableInterface{
 				return $this->_doRunWorkers($options);
 			}
 		
-		}catch (\RuntimeException $e){
-			$this->getLogger()->err(sprintf('Unable to run workers on queue "%s". Message was: %s',get_class($queue),$e->getMessage()));
+		}catch (\Exception $e){
+			$this->getLogger()->err(sprintf('Unable to run workers on queue "%s". Message was: %s',get_class($this),$e->getMessage()));
 		}
 	}
 	
@@ -100,4 +110,22 @@ abstract class Queue implements MessageableInterface{
 	abstract protected function _doRegisterWorker($topic , Worker $worker);
 	
 	abstract protected function _doRunWorkers($options=array());
+	
+	protected function workCycleStart(){
+		
+	}
+	protected function workCycleEnd(){
+		var_dump($this->_options);
+		if ($this->_options['max_work_cycles'] > 0){
+			$this->_options['max_work_cycles']--;
+		}
+		$this->getLogger()->info(sprintf('Queue "%s" work cycle tick',get_class($this)));
+		
+	}
+	protected function gracefulKill(){
+		if ($this->_options['max_work_cycles']===0){
+			return TRUE;
+		}
+		return FALSE;
+	}
 }

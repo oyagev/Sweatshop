@@ -27,7 +27,7 @@ $worker = new EchoWorker($sweatshop);
 $queue->registerWorker('topic:test', $worker);
 $sweatshop->addQueue($queue);
 
-$queue2 = new GearmanQueue($sweatshop, array('port'=>32));
+$queue2 = new GearmanQueue($sweatshop, array());
 $sweatshop->addQueue($queue2);
 
 
