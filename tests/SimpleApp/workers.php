@@ -22,12 +22,12 @@ $sweatshop->setLogger($logger);
 
 require_once 'BackgroundPrintWorker.php';
 
-$queue = new GearmanQueue($sweatshop,array('max_work_cycles' => 10));
+$queue = new GearmanQueue($sweatshop,array('max_work_cycles' => -1, 'max_memory_per_thread'=> 900000));
 $worker = new BackgroundPrintWorker($sweatshop);
 $queue->registerWorker('topic:test', $worker);
 $sweatshop->addQueue($queue);
 
 
 $sweatshop->runWorkers(array(
-	'min_threads_per_queue' => 1		
+	'min_threads_per_queue' => 3		
 ));

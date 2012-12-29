@@ -15,6 +15,7 @@ class GearmanQueue extends Queue{
 	protected $_gmworker = NULL;
 	protected $_workersQueue = array();
 	protected $_workersStack = array();
+	private $_workers = array();
 	
 	
 	function __construct($sweatshop,$options=array()){
@@ -34,6 +35,12 @@ class GearmanQueue extends Queue{
 		
 		return array();
 	}
+	
+	/* (non-PHPdoc)
+	 * @see \Sweatshop\Queue\Queue::_doRegisterWorker()
+	 * Here we're just registering those workers internally. 
+	 * Actual callbacks will be registered later, right before processing work
+	 */
 	protected function _doRegisterWorker($topic, Worker $worker){
 		
 		$workerClass = get_class($worker);
@@ -46,14 +53,28 @@ class GearmanQueue extends Queue{
 		}
 		$this->_workersQueue[$topic][] = $worker;
 		$this->_workersStack[$worker_topic] = $worker;
+	}
+	
+	/**
+	 * Register the callbacks with Gearman server
+	 */
+	protected function _doRegisterCallbacks(){
 		
-		//Register a function on gearnam for every worker
-		$this->worker()->addFunction($worker_topic , array($this,'_executeWorkerBackground') );
-		
-		//Register a global "worker function" that invokes all workers
-		$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
+		foreach(array_keys($this->_workersStack) as $worker_topic){
+			//Register a function on gearnam for every worker
+			$this->worker()->addFunction($worker_topic , array($this,'_executeWorkerBackground') );
+		}
+		foreach(array_keys($this->_workersQueue) as $topic){
+			//Register a global "worker function" that invokes all workers
+			$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
+		}
 	}
 	public function _doRunWorkers($options=array()){
+		$this->_gmclient = NULL;
+		$this->_gmworker = NULL;
+		
+		$this->_doRegisterCallbacks();
+		
 		while(!$this->gracefulKill() && $this->worker()->work()){
 			
 			$this->workCycleEnd();

@@ -21,7 +21,8 @@ abstract class Queue implements MessageableInterface{
 	public function __construct(Sweatshop $sweatshop, $options=array()){
 		$this->setDependencies($sweatshop->getDependencies());
 		$this->_options = array_merge(array(
-			'max_work_cycles' => -1
+			'max_work_cycles' => -1, 
+			'max_memory_per_thread' => -1
 		),$this->_options , $options);
 		
 	}
@@ -32,6 +33,10 @@ abstract class Queue implements MessageableInterface{
 	
 	function setDependencies(\Pimple $di){
 		$this->_di = $di;
+	}
+	
+	public function getOptions(){
+		return $this->_options;
 	}
 	
 	/**
@@ -69,33 +74,12 @@ abstract class Queue implements MessageableInterface{
 	
 	public function runWorkers($options){
 		try{
-			if ($options['threads_per_queue'] > 0){
-				declare(ticks=1);
-				for ($i=0;$i<$options['threads_per_queue'] ; $i++){
-					
-					$children = array();
-					$pid = pcntl_fork();
-					if ($pid == -1) {
-						$this->getLogger()->fatal(sprintf('Queue "%s" Cannot fork a new thread', get_class($this)));
-					} else if ($pid) {
-						// we are the parent - do nothing
-				
-					} else {
-						$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
-						return $this->_doRunWorkers($options);
-						break;
-					}
-				}
-			}elseif ($options['threads_per_worker'] > 0){
-				
-			}else{
-				$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
-				return $this->_doRunWorkers($options);
-			}
-		
+			$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
+			return $this->_doRunWorkers($options);
 		}catch (\Exception $e){
 			$this->getLogger()->err(sprintf('Unable to run workers on queue "%s". Message was: %s',get_class($this),$e->getMessage()));
 		}
+		
 	}
 	
 	/**
@@ -115,15 +99,17 @@ abstract class Queue implements MessageableInterface{
 		
 	}
 	protected function workCycleEnd(){
-		var_dump($this->_options);
 		if ($this->_options['max_work_cycles'] > 0){
 			$this->_options['max_work_cycles']--;
 		}
-		$this->getLogger()->info(sprintf('Queue "%s" work cycle tick',get_class($this)));
+		$this->getLogger()->debug(sprintf('Queue "%s" work cycle tick',get_class($this)));
+		$this->getLogger()->debug(sprintf('Queue "%s" memory: %.2f',get_class($this), memory_get_usage(true)));
 		
 	}
 	protected function gracefulKill(){
 		if ($this->_options['max_work_cycles']===0){
+			return TRUE;
+		}elseif($this->_options['max_memory_per_thread'] > 0 && memory_get_usage(true) >= $this->_options['max_memory_per_thread']){
 			return TRUE;
 		}
 		return FALSE;

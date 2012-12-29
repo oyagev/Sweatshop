@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop;
 
+use Sweatshop\Queue\Threads\ThreadsManager;
+
 use Monolog\Handler\NullHandler;
 
 use Monolog\Logger;
@@ -13,6 +15,7 @@ class Sweatshop{
 	
 	protected $_queues = array();
 	protected $_di = NULL;
+	protected $_threadManagers = array();
 	
 	function __construct(){
 		
@@ -48,23 +51,29 @@ class Sweatshop{
 	
 	function runWorkers($options=array()){
 		$options = array_merge(array(
-			'threads_per_queue' => 1, 
-			'threads_per_worker' => 0, 
-			'wait_threads_exit' => true
+			'min_threads_per_queue' => 1, 
+			'min_threads_per_worker' => 0, 
+			'wait_threads_exit' => true , 
+			'max_work_cycles' => -1
 		) , $options);
 		
-		if ($options['threads_per_queue'] == 0 && $options['threads_per_queue'] == 0){
+		if ($options['min_threads_per_queue'] == 0 && $options['min_threads_per_queue'] == 0){
 			$this->getLogger()->warn('Launching workers without threads support is not recommended');
 		}
 		
 		foreach ($this->_queues as $queue){
-			$queue->runWorkers($options);
+			$manager = new ThreadsManager($this,$queue,$options);
+			array_push($this->_threadManagers, $manager);
+			$manager->run();
+			//$queue->runWorkers($options);
 		}
 		
 		
 		
-		while ($options['wait_threads_exit'] && pcntl_wait($status)!=-1){
-			var_dump($status);
+		while ($options['wait_threads_exit'] &&  ($pid=pcntl_wait($status)) !=-1){
+			foreach($this->_threadManagers as $manager){
+				$manager->notifyExitPID($pid);
+			}
 		}
 	}
 	

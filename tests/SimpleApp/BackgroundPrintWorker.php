@@ -10,5 +10,6 @@ class BackgroundPrintWorker extends Worker{
 		$topic = $message->getTopic();
 		
 		printf("Processed job for topic '%s', value was '%s'".PHP_EOL,$topic,$params['value']);
+		
 	}
 }
