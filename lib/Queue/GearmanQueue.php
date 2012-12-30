@@ -75,7 +75,13 @@ class GearmanQueue extends Queue{
 		
 		$this->_doRegisterCallbacks();
 		
-		while(!$this->gracefulKill() && $this->worker()->work()){
+		if ($this->isCandidateForGracefulKill()){
+			$this->getLogger()->err(sprintf('Queue "%s" is exiting without performing any work. Please check configurations.', get_class($this)));
+			return;
+		}
+		
+		
+		while(!$this->isCandidateForGracefulKill() && $this->worker()->work()){
 			
 			$this->workCycleEnd();
 		}
