@@ -1,8 +1,10 @@
 # Sweatshop
 
 Sweatshop in a framework for executing unsyncronious tasks in PHP with external separate workers. 
+
 Just create Worker classes, attach them to various Queues and dispatch your events and messages. 
-Sweatshop supports and monitors threads! Thus it's easy to create multiple workers and prevent queue locks and infinite loops.
+
+Sweatshop supports and monitors processes! Thus it's easy to create multiple workers and prevent queue locks and infinite loops.
 
 ## Installation
 
@@ -21,7 +23,9 @@ Next include the library in your PHP code:
 
 ## Concept 
 In its core, Sweatshop defines "Queues" and "Workers" and "Messages". A Worker is a processing unit, an entity that's responsible to execute a single job, based on a Message it receives. 
+
 A Queue is basically the manager. Each Queue has its own allocated workers, for specific "job topics" it supports. The Queue is responsible for delivering Messages to the appropriate Workers, monitor job execution and return the expected reply (if any) to the dispatcher.
+
 A Queue can be syncronious, thus working inside the application and blocking its operation. 
 A Queue can also be asyncronious, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
 
@@ -218,8 +222,8 @@ Once Logger is setup, you can use it withing you Workers and Queues classes:
 
 
 ### Process Management
-Sweatshop supports running workers in threads. 
-Basically, every asyncronious Queue run on a separate thread. For example, run the previous script:
+Sweatshop supports running workers in separate processes. 
+Basically, every asyncronious Queue run on a separate process. For example, run the previous script:
     
     $ php run-workers.php
 
