@@ -1,6 +1,6 @@
 # Sweatshop
 
-Sweatshop in a framework for executing asynchronous tasks in PHP with external separate workers. 
+Sweatshop is a framework for executing asynchronous tasks in PHP with external separate workers. 
 
 Just create Worker classes, attach them to various Queues and dispatch your events and messages. 
 
