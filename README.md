@@ -1,6 +1,6 @@
 # Sweatshop
 
-Sweatshop in a framework for executing unsyncronious tasks in PHP with external separate workers. 
+Sweatshop in a framework for executing asynchronous tasks in PHP with external separate workers. 
 
 Just create Worker classes, attach them to various Queues and dispatch your events and messages. 
 
@@ -26,12 +26,12 @@ In its core, Sweatshop defines "Queues" and "Workers" and "Messages". A Worker i
 
 A Queue is basically the manager. Each Queue has its own allocated workers, for specific "job topics" it supports. The Queue is responsible for delivering Messages to the appropriate Workers, monitor job execution and return the expected reply (if any) to the dispatcher.
 
-A Queue can be syncronious, thus working inside the application and blocking its operation. 
-A Queue can also be asyncronious, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
+A Queue can be synchronous, thus working inside the application and blocking its operation. 
+A Queue can also be asynchronous, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
 
 ## Usage
 
-The most basic usage of Sweatshop, though uncommon, is syncronious message processing.
+The most basic usage of Sweatshop, though uncommon, is synchronous message processing.
 Lets consider the following (simple) Worker:
 
     <?php
@@ -45,7 +45,7 @@ Lets consider the following (simple) Worker:
     }
     
 This worker merely takes a predefined value from the received message and returns it.
-To use Sweatshop, we first istantiate the class:
+To use Sweatshop, we first instantiate the class:
     
     <?php
     require_once 'path/to/Sweatshop/sweatshop.php';
@@ -121,9 +121,9 @@ Complete code:
      */
 
 
-### Running Asyncronious Tasks
+### Running Asynchronous Tasks
 
-Above we used "InternalQueue" class to register workers that are invoked internally, as part of the application. To invoke the same Worker asyncroniously, all we need is to attach it to a different Queue. 
+Above we used "InternalQueue" class to register workers that are invoked internally, as part of the application. To invoke the same Worker asynchronously, all we need is to attach it to a different Queue. 
 
 Consider the following (shortened) example:
 
@@ -204,7 +204,7 @@ To create your own Workers, you simply inherit from Sweatshop's Worker class. Fo
 This Worker will output a log record for every Message it processes.
 
 ### Logging
-Sweatshop uses the excelent [monolog](https://github.com/Seldaek/monolog) library for logging.
+Sweatshop uses the excellent [monolog](https://github.com/Seldaek/monolog) library for logging.
 To enable logging, just create a logger and attach it to Sweatshop. 
 For example:
 
@@ -223,7 +223,7 @@ Once Logger is setup, you can use it withing you Workers and Queues classes:
 
 ### Process Management
 Sweatshop supports running workers in separate processes. 
-Basically, every asyncronious Queue run on a separate process. For example, run the previous script:
+Basically, every asynchronous Queue run on a separate process. For example, run the previous script:
     
     $ php run-workers.php
 
@@ -233,7 +233,7 @@ And from a separate terminal run:
     
 Surprisingly, you'll notice that you have 2 processes running. One for the process that you invoked and one child process that is actually running workers. 
 The parent process itself is not running any worker, rather it's responsible for launching child processes and monitoring their activity.
-The child process is responsible for a single Queue isntance, running all attahced Workers.
+The child process is responsible for a single Queue instance, running all attached Workers.
 
 
 #### Adding processes for each Queue
