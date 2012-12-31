@@ -31,5 +31,5 @@ $sweatshop->addQueue($queue);
 
 
 $sweatshop->runWorkers(array(
-	'min_threads_per_queue' => 3		
+	'min_threads_per_queue' => 3	
 ));

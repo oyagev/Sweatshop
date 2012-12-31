@@ -32,7 +32,11 @@ class Sweatshop{
 		$this->getLogger()->info(sprintf('Sweatshop pushing message id "%s"',$message->getId()), array('message_id'=>$message->getId()));
 		$result = array();
 		foreach ($this->_queues as $queue){
-			$result = array_merge($result, $queue->pushMessage($message));
+			$res = $queue->pushMessage($message);
+			if ($res){
+				$result = array_merge($result, $res);
+			}
+			
 		}
 		return $result;
 	}

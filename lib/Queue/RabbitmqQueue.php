@@ -16,6 +16,7 @@ class RabbitmqQueue extends Queue{
 	
 	private $_conn = NULL;
 	private $_channel = NULL;
+	private $_workersQueues = array();
 	
 	function __construct($sweatshop,$options=array()){
 		parent::__construct($sweatshop,$options);
@@ -34,24 +35,57 @@ class RabbitmqQueue extends Queue{
 	}
 	
 	function _doPushMessage(Message $message){
-		$this->getChannel()->exchange_declare($message->getTopic(), 'fanout',false,false,false);
-		$msg = new AMQPMessage(serialize($message));
-		$this->getChannel()->basic_publish($msg, $message->getTopic());
+		$this->getChannel()->exchange_declare($this->getExchangeName(), 'direct',false,true,false);
+		
+		//create a durable message (survive server restart)
+		$msg = new AMQPMessage(serialize($message),array(
+			'delivery_mode' => 2	
+		));
+		$this->getChannel()->basic_publish($msg, $this->getExchangeName(), $message->getTopic());
 	}
 	function _doRegisterWorker($topic, Worker $worker){
-		$this->getChannel()->exchange_declare($topic, 'fanout',false,false,false);
-		list($queue_name, ,) = $this->getChannel()->queue_declare("", false, false, true, false);
-		$this->getChannel()->queue_bind($queue_name, $topic);
-		$this->getChannel()->basic_consume($queue_name, '', false, true, false, false, array($this,'_executeWorkerBackground'));
+		
+		if (empty($this->_workersQueues[$topic])){
+			$this->_workersQueues[$topic] = array();
+		}
+		array_push($this->_workersQueues[$topic],$worker);
+		
 	}
 	function _doRunWorkers($options=array()){
-		while(count($this->getChannel()->callbacks)) {
+		foreach($this->_workersQueues as $topic => $workers){
+			foreach($workers as $worker){
+				$worker_queue_name = get_class($this).':'.get_class($worker);
+				$this->getChannel()->exchange_declare($this->getExchangeName(), 'direct',false,true,false);
+				$this->getChannel()->queue_declare($worker_queue_name, false, true, false, false);
+				$this->getChannel()->queue_bind($worker_queue_name, $this->getExchangeName(),$topic);
+				$channel = $this->getChannel();
+				$closure = function($msg) use ($worker,$channel){
+					$workload = unserialize($msg->body);
+						
+					//$worker = (!empty($this->_workersStack[$worker_topic]) ) ? $this->_workersStack[$worker_topic] : NULL;
+					if ($worker instanceof Worker){
+						$results =  $worker->execute($workload);
+						$channel->basic_ack($msg->delivery_info['delivery_tag']);
+					}else{
+						$results=array();
+						//TODO: Log error
+					}
+				};
+				$this->getChannel()->basic_consume($worker_queue_name, '', false, false, false, false, $closure);
+			}
+		}
+		
+		
+		while(!$this->isCandidateForGracefulKill() && count($this->getChannel()->callbacks)) {
 			$this->getChannel()->wait();
+			$this->workCycleEnd();
 		}
 	}
 	
 	public function _executeWorkerBackground($msg){
 		var_dump($msg);
+		$message = unserialize($msg->body);
+		//var_dump($message);
 	} 
 	
 	/**
@@ -72,6 +106,10 @@ class RabbitmqQueue extends Queue{
 		}
 		return $this->_channel;
 		
+	}
+	
+	private function getExchangeName(){
+		return 'default';
 	}
 	
 }
