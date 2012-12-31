@@ -20,11 +20,11 @@ Next include the library in your PHP code:
 
 
 ## Concept 
-In its core, Sweatshop defines "Queues" and "Workers" and "Messages". A Worker is a processing unit, an entity that's responsible to execute a single job, based on a Message it receives. 
+In its core, Sweatshop defines "Queues", "Workers" and "Messages". A Worker is a processing unit, an entity that's responsible to execute a defined job, based on a Message it receives. 
 
 A Queue is basically the manager. Each Queue has its own allocated workers, for specific "job topics" it supports. The Queue is responsible for delivering Messages to the appropriate Workers, monitor job execution and return the expected reply (if any) to the dispatcher.
 
-A Queue can be synchronous, thus working inside the application and blocking its operation. 
+A Queue can be synchronous, thus working inside the application and blocking its operation until Workers' tasks are complete. 
 A Queue can also be asynchronous, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
 
 ## Usage
@@ -67,7 +67,7 @@ Finally, we attache the Queue to Sweatshop:
 Once we're done setting Sweatshop, we're ready to start dispatching messages:
 
     use Sweatshop\Message\Message;
-    $message = new Message('topic:test',array(
+    $message = new Message('topic:test:echo',array(
         'value' => 3		
     ));
     $results = $sweatshop->pushMessage($message);
