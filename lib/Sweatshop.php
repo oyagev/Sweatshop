@@ -33,7 +33,7 @@ class Sweatshop{
 		$result = array();
 		foreach ($this->_queues as $queue){
 			$res = $queue->pushMessage($message);
-			if ($res){
+			if (is_array($res)){
 				$result = array_merge($result, $res);
 			}
 			

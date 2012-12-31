@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop\Worker;
 
+use Monolog\Logger;
+
 use Sweatshop\Sweatshop;
 
 use Sweatshop\Interfaces\MessageableInterface;

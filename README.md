@@ -1,0 +1,256 @@
+# Sweatshop
+
+Sweatshop in a framework for executing unsyncronious tasks in PHP with external separate workers. 
+Just create Worker classes, attach them to various Queues and dispatch your events and messages. 
+Sweatshop supports and monitors threads! Thus it's easy to create multiple workers and prevent queue locks and infinite loops.
+
+## Installation
+
+Clone this library and put it in your project tree:
+
+    $ cd <your destination folder>
+    $ git clone git://github.com/oyagev/Sweatshop.git
+    $ cd Sweatshop
+    $ php ./composer.phar install
+
+Next include the library in your PHP code:
+
+    <?php
+    require_once 'path/to/Sweatshop/sweatshop.php';
+
+
+## Concept 
+In its core, Sweatshop defines "Queues" and "Workers" and "Messages". A Worker is a processing unit, an entity that's responsible to execute a single job, based on a Message it receives. 
+A Queue is basically the manager. Each Queue has its own allocated workers, for specific "job topics" it supports. The Queue is responsible for delivering Messages to the appropriate Workers, monitor job execution and return the expected reply (if any) to the dispatcher.
+A Queue can be syncronious, thus working inside the application and blocking its operation. 
+A Queue can also be asyncronious, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
+
+## Usage
+
+The most basic usage of Sweatshop, though uncommon, is syncronious message processing.
+Lets consider the following (simple) Worker:
+
+    <?php
+    use Sweatshop\Message\Message;
+    use Sweatshop\Worker\Worker;
+    class EchoWorker extends Worker{
+    	function _doExecute(Message $message){
+		    $params =  $message->getParams();
+		    return $params['value'];
+	    }
+    }
+    
+This worker merely takes a predefined value from the received message and returns it.
+To use Sweatshop, we first istantiate the class:
+    
+    <?php
+    require_once 'path/to/Sweatshop/sweatshop.php';
+    $sweatshop = new Sweatshop();
+
+Instantiate the Queue:
+
+    use Sweatshop\Queue\InternalQueue;
+    $queue = new InternalQueue($sweatshop);
+    
+Instantiate the Worker and register it to the Queue:
+    
+    //Don't forget to include the Worker class
+    $worker = new EchoWorker($sweatshop);
+    $queue->registerWorker('topic:test:echo', $worker);
+
+Finally, we attache the Queue to Sweatshop:
+
+    $sweatshop->addQueue($queue);
+    
+Once we're done setting Sweatshop, we're ready to start dispatching messages:
+
+    use Sweatshop\Message\Message;
+    $message = new Message('topic:test',array(
+        'value' => 3		
+    ));
+    $results = $sweatshop->pushMessage($message);
+    print_r($results);
+    
+Complete code:
+
+    <?php
+    require_once '/path/to/sweatshop.php';
+    
+    use Sweatshop\Sweatshop;
+    use Sweatshop\Worker\Worker;
+    use Sweatshop\Queue\InternalQueue;
+    use Sweatshop\Message\Message;
+    
+    
+    //Define the worker class
+    //here or somewhere else...
+    class EchoWorker extends Worker{
+        function _doExecute(Message $message){
+            $params =  $message->getParams();
+            return $params['value'];
+        }
+    }
+    
+    //Setup Sweatshop, Queue and Worker
+    $sweatshop = new Sweatshop();
+    $queue = new InternalQueue($sweatshop);
+    $worker = new EchoWorker($sweatshop);
+    $queue->registerWorker('topic:test:echo', $worker);
+    $sweatshop->addQueue($queue);
+    
+    //Create a new Message
+    $message = new Message('topic:test:echo',array(
+        'value' => 3        
+    ));
+    
+    //Invoke Workers for the message
+    $results = $sweatshop->pushMessage($message);
+    print_r($results);
+    
+    /*
+    Expected Result:
+    
+    Array
+    (
+        [0] => 3
+    )
+     */
+
+
+### Running Asyncronious Tasks
+
+Above we used "InternalQueue" class to register workers that are invoked internally, as part of the application. To invoke the same Worker asyncroniously, all we need is to attach it to a different Queue. 
+
+Consider the following (shortened) example:
+
+    //Setup Sweatshop, Queue and Worker
+    $sweatshop = new Sweatshop();
+    $queue = new GearmanQueue($sweatshop);
+    $sweatshop->addQueue($queue);
+    
+    //Create a new Message
+    $message = new Message('topic:test:echo',array(
+        'value' => 3        
+    ));
+    
+    //Invoke Workers for the message
+    $results = $sweatshop->pushMessage($message);
+
+We replace the "InternalQueue" with "GearmanQueue", which naturally uses Gearman server as job server. Also, since workers will be executed in a separate process, we don't need to define them now!
+
+This time, the application will dispatch the message as a "background job" to an external gearman server, not waiting for Workers execution.
+Hence, we can expect "$results" array to be empty.
+
+To actually execute this worker, we will create a command-line script:
+
+    run-workers.php
+    <?php
+    require_once '/path/to/sweatshop.php';
+    use Sweatshop\Queue\GearmanQueue;
+    use Sweatshop\Message\Message;
+    use Sweatshop\Queue\InternalQueue;
+    use Sweatshop\Sweatshop;
+    
+    $sweatshop = new Sweatshop();
+    $queue = new GearmanQueue($sweatshop,array());
+    $worker = new EchoWorker($sweatshop);
+    $queue->registerWorker('topic:test:echo', $worker);
+    $sweatshop->addQueue($queue);
+
+    $sweatshop->runWorkers(); //run those workers!
+
+Here we define the Queue and Worker.
+Notice the last line that makes all the difference... 
+
+All you need to do now is launch this script from command-line:
+
+    $ php run-workers.php
+
+We're launching workers!
+
+### Creating your own Workers
+Having demo Workers run for you is easy, but it doesn't really help you ;-)
+To create your own Workers, you simply inherit from Sweatshop's Worker class. For example:
+
+    <?php
+    use Sweatshop\Message\Message;
+    use Sweatshop\Worker\Worker;
+    
+    class MyLoggingWorker extends Worker{
+        
+        //define this method to specify the work to be done
+    	function _doExecute(Message $message){
+    		$params =  $message->getParams(); //get the message parameters
+    		$topic = $message->getTopic(); //get the topic
+    		
+    		$this->getLogger()->info(sprintf("Processed job for topic '%s', value was '%s'",$topic,$params['value']));
+    		
+    	}
+        
+        // This method is called once as the Worker instantiate
+        function _doTearUp(){
+            ;
+        }
+        
+        // This method is called once on Worker destruction
+        function _doTearDown(){
+            ;
+        }
+    }
+This Worker will output a log record for every Message it processes.
+
+### Logging
+Sweatshop uses the excelent [monolog](https://github.com/Seldaek/monolog) library for logging.
+To enable logging, just create a logger and attach it to Sweatshop. 
+For example:
+
+
+    use Monolog\Logger;
+    use Monolog\Handler\StreamHandler;
+    
+    $logger = new Logger('SweatshopExample');
+    $logger->pushHandler(new StreamHandler("php://stdout")); // log to command-line 
+    $sweatshop->setLogger($logger);
+
+Once Logger is setup, you can use it withing you Workers and Queues classes:
+
+    $logger = $this->getLogger(); // inside Worker and Queue
+
+
+### Process Management
+Sweatshop supports running workers in threads. 
+Basically, every asyncronious Queue run on a separate thread. For example, run the previous script:
+    
+    $ php run-workers.php
+
+And from a separate terminal run:
+    
+    $ ps aux | grep run-workers
+    
+Surprisingly, you'll notice that you have 2 processes running. One for the process that you invoked and one child process that is actually running workers. 
+The parent process itself is not running any worker, rather it's responsible for launching child processes and monitoring their activity.
+The child process is responsible for a single Queue isntance, running all attahced Workers.
+
+
+#### Adding processes for each Queue
+You can set the minimum number of processes active for each Queue:
+
+    $sweatshop->runWorkers(array(
+        'min_threads_per_queue' => 3		
+    ));
+
+Running this script should yield 4 processes: 1 parent process and 3 child processes, each running the same Queue.
+
+#### Refreshing Processes
+We can also set some conditions, by which processes will be killed gracefully and new processes will replace them:
+
+    $queue = new GearmanQueue($sweatshop,array(
+        'max_work_cycles' => 3, //maximum work cycles this process will execute
+        'max_memory_per_thread'=> 10000000 //maximum memory this process can consume
+    ));
+
+Here we set 2 parameters that are evaluated after every work cycle.
+Once a condition is met, the process will exit and be replaced by a new, fresh process.
+
+Please notice that the last settings are defined per Queue.
+
