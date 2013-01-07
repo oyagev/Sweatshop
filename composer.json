@@ -10,6 +10,7 @@
             "homepage": "http://www.orenyagev.com"
         }
     ],
+    "minimum-stability": "stable",
 	"repositories": [
 	    {
 	        "type": "composer",
