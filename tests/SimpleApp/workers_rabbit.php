@@ -13,7 +13,7 @@ use Sweatshop\Queue\InternalQueue;
 
 use Sweatshop\Sweatshop;
 
-require_once __DIR__.'/../../sweatshop.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
 $sweatshop = new Sweatshop();
 $logger = new Logger('website');

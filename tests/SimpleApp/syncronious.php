@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/../../sweatshop.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
 use Sweatshop\Sweatshop;
 use Sweatshop\Worker\Worker;
