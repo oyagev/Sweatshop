@@ -1,5 +1,5 @@
 {
-    "hash": "9b1ff7a2201ab39d621d8c41cf0cdac6",
+    "hash": "048a59de0cd1394855a2c0c107ea0e1f",
     "packages": [
         {
             "name": "monolog/monolog",
@@ -186,7 +186,7 @@
 
     ],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "videlalvaro/php-amqplib": 20
-    }
+    "stability-flags": [
+
+    ]
 }
