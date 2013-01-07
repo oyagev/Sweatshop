@@ -1,5 +1,15 @@
 {
-	"minimum-stability" : "dev",
+	"name" : "oyagev/sweatshop",
+	"type": "library",
+    "description": "Abstraction layer for message brokers and job servers, including process management",
+    "homepage": "https://github.com/oyagev/Sweatshop",
+    "authors": [
+        {
+            "name": "Oren Yagev",
+            "email": "oyagev@gmail.com",
+            "homepage": "http://www.orenyagev.com"
+        }
+    ],
 	"repositories": [
 	    {
 	        "type": "composer",
@@ -7,9 +17,15 @@
 	    }
 	],
     "require": {
+    	"php": ">=5.3.0",
         "monolog/monolog": "1.2.*",
         "zendframework/zend-config": "2.0.*",
-        "pimple/pimple" : "*", 
-        "videlalvaro/php-amqplib" : "*"
+        "pimple/pimple" : ">1.0", 
+        "videlalvaro/php-amqplib": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Sweatshop": "lib"
+        }
     }
 }
