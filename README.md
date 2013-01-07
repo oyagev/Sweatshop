@@ -6,18 +6,7 @@ Sweatshop supports and monitors processes! Thus it's easy to create multiple wor
 
 ## Installation
 
-Clone this library and put it in your project tree:
-
-    $ cd <your destination folder>
-    $ git clone git://github.com/oyagev/Sweatshop.git
-    $ cd Sweatshop
-    $ php ./composer.phar install
-
-Next include the library in your PHP code:
-
-    <?php
-    require_once 'path/to/Sweatshop/sweatshop.php';
-
+Fetch this library with Composer.
 
 ## Concept 
 In its core, Sweatshop defines "Queues", "Workers" and "Messages". A Worker is a processing unit, an entity that's responsible to execute a defined job, based on a Message it receives. 
@@ -46,7 +35,6 @@ This worker merely takes a predefined value from the received message and return
 To use Sweatshop, we first instantiate the class:
     
     <?php
-    require_once 'path/to/Sweatshop/sweatshop.php';
     $sweatshop = new Sweatshop();
 
 Instantiate the Queue:
@@ -76,7 +64,6 @@ Once we're done setting Sweatshop, we're ready to start dispatching messages:
 Complete code:
 
     <?php
-    require_once '/path/to/sweatshop.php';
     
     use Sweatshop\Sweatshop;
     use Sweatshop\Worker\Worker;
@@ -147,7 +134,6 @@ To actually execute this worker, we will create a command-line script:
 
     run-workers.php
     <?php
-    require_once '/path/to/sweatshop.php';
     use Sweatshop\Queue\GearmanQueue;
     use Sweatshop\Message\Message;
     use Sweatshop\Queue\InternalQueue;
