@@ -25,10 +25,10 @@ Lets consider the following (simple) Worker:
     use Sweatshop\Message\Message;
     use Sweatshop\Worker\Worker;
     class EchoWorker extends Worker{
-    	function _doExecute(Message $message){
+    	function work(Message $message){
 		    $params =  $message->getParams();
 		    return $params['value'];
-	    }
+	}
     }
     
 This worker merely takes a predefined value from the received message and returns it.
@@ -54,11 +54,10 @@ Finally, we attache the Queue to Sweatshop:
     
 Once we're done setting Sweatshop, we're ready to start dispatching messages:
 
-    use Sweatshop\Message\Message;
-    $message = new Message('topic:test:echo',array(
+    
+    $results = $sweatshop->pushMessageQuick('topic:test:echo',array(
         'value' => 3		
     ));
-    $results = $sweatshop->pushMessage($message);
     print_r($results);
     
 Complete code:
@@ -74,7 +73,7 @@ Complete code:
     //Define the worker class
     //here or somewhere else...
     class EchoWorker extends Worker{
-        function _doExecute(Message $message){
+        function work(Message $message){
             $params =  $message->getParams();
             return $params['value'];
         }
@@ -87,13 +86,10 @@ Complete code:
     $queue->registerWorker('topic:test:echo', $worker);
     $sweatshop->addQueue($queue);
     
-    //Create a new Message
-    $message = new Message('topic:test:echo',array(
+    //Invoke Workers for the message
+    $results = $sweatshop->pushMessageQuick('topic:test:echo',array(
         'value' => 3        
     ));
-    
-    //Invoke Workers for the message
-    $results = $sweatshop->pushMessage($message);
     print_r($results);
     
     /*
@@ -167,7 +163,7 @@ To create your own Workers, you simply inherit from Sweatshop's Worker class. Fo
     class MyLoggingWorker extends Worker{
         
         //define this method to specify the work to be done
-    	function _doExecute(Message $message){
+    	function work(Message $message){
     		$params =  $message->getParams(); //get the message parameters
     		$topic = $message->getTopic(); //get the topic
     		
@@ -176,12 +172,12 @@ To create your own Workers, you simply inherit from Sweatshop's Worker class. Fo
     	}
         
         // This method is called once as the Worker instantiate
-        function _doTearUp(){
+        function tearUp(){
             ;
         }
         
         // This method is called once on Worker destruction
-        function _doTearDown(){
+        function tearDown(){
             ;
         }
     }

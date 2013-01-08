@@ -5,7 +5,7 @@ use Sweatshop\Worker\Worker;
 
 class BackgroundPrintWorker extends Worker{
 	
-	function _doExecute(Message $message){
+	function work(Message $message){
 		$params =  $message->getParams();
 		$topic = $message->getTopic();
 		

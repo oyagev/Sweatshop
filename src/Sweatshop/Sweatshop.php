@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop;
 
+use Sweatshop\Worker\Worker;
+
 use Sweatshop\Queue\Threads\ThreadsManager;
 
 use Monolog\Handler\NullHandler;
@@ -40,10 +42,50 @@ class Sweatshop{
 		}
 		return $result;
 	}
-	function addQueue(Queue $queue){
-		$this->getLogger()->info('Adding queue: '.get_class($queue));
-		$queue->setDependencies($this->_di);
-		array_push($this->_queues, $queue);
+	
+	function pushMessageQuick($topic , $params = array()){
+		$message = new Message($topic,$params);
+		return $this->pushMessage($message);
+	}
+	function addQueue($queue, $queueOptions = array()){
+		$queueObj = $queue;
+		
+		if (is_string($queue)){
+			if (class_exists($queue)){
+				$queueObj = new $queue($this,$queueOptions);
+			}else{
+				$newname = 'Sweatshop\\Queue\\'.ucfirst($queue) . 'Queue';
+				if (class_exists($newname)){
+					$queueObj = new $newname($this,$queueOptions);
+				}
+			}
+		}
+		
+		
+		if ($queueObj instanceOf Queue){
+			$this->getLogger()->info('Adding queue: '.get_class($queueObj));
+			array_push($this->_queues, $queueObj);
+			return $queueObj;
+		}else{
+			throw new \InvalidArgumentException("Unable to instantiate queue: ".$queue);
+		}
+		
+	}
+	
+	function registerWorker(Queue $queue, $topic, $worker){
+		
+		if (is_string($worker) && class_exists($worker)){
+			$workerObj = new $worker($this);
+		}else{
+			$workerObj = $worker;
+		}
+		
+		if ($workerObj instanceOf Worker){
+			$queue->registerWorker($topic, $workerObj);
+			return $worker;
+		}else{
+			throw new \InvalidArgumentException("Unable to instantiate worker: ".$worker);
+		}
 	}
 	function setLogger(Logger $logger){
 		$this->_di['logger'] = $logger;
@@ -88,5 +130,7 @@ class Sweatshop{
 	function getDependencies(){
 		return $this->_di;
 	}
+	
+	
 	
 }

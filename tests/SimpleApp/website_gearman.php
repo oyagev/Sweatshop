@@ -13,29 +13,20 @@ use Sweatshop\Queue\InternalQueue;
 use Sweatshop\Sweatshop;
 
 require_once __DIR__.'/../../vendor/autoload.php';
+require_once 'EchoWorker.php';
 
 $sweatshop = new Sweatshop();
 $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
 $sweatshop->setLogger($logger);
 
-$queue = new InternalQueue($sweatshop);
+$queue = $sweatshop->addQueue('Sweatshop\\Queue\\InternalQueue');
+$sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
 
-require_once 'EchoWorker.php';
+$queue = $sweatshop->addQueue('gearman');
 
-$worker = new EchoWorker($sweatshop);
-$queue->registerWorker('topic:test', $worker);
-$sweatshop->addQueue($queue);
-
-$queue2 = new GearmanQueue($sweatshop, array());
-$sweatshop->addQueue($queue2);
-
-
-
-$message = new Message('topic:test',array(
+$results = $sweatshop->pushMessageQuick('topic:test',array(
 	'value' => 3		
 ));
-
-$results = $sweatshop->pushMessage($message);
 
 print_r($results);

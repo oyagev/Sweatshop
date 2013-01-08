@@ -17,7 +17,7 @@ abstract class Worker implements MessageableInterface{
 	
 	public function __construct(Sweatshop $sweatshop){
 		$this->setDependencies($sweatshop->getDependencies());
-		$this->_doTearUp();
+		$this->tearUp();
 	}
 	
 	function setDependencies(\Pimple $di){
@@ -30,12 +30,12 @@ abstract class Worker implements MessageableInterface{
 	
 	public function __destruct(){
 		$this->getLogger()->info(sprintf('Worker "%s": tearing down',get_class($this)));
-		$this->_doTearDown();
+		$this->tearDown();
 	}
 	
 	public function execute(Message $message){
 		$this->getLogger()->info(sprintf('Worker "%s" executing message "%s"',get_class($this),$message->getId()));
-		return $this->_doExecute($message);
+		return $this->work($message);
 	}
 	
 	function pushMessage(Message $message){
@@ -50,11 +50,11 @@ abstract class Worker implements MessageableInterface{
 	
 	
 	
-	protected function _doTearUp(){
+	protected function tearUp(){
 		
 	}
-	protected function _doTearDown(){
+	protected function tearDown(){
 	
 	}
-	abstract protected function _doExecute(Message $message);
+	abstract protected function work(Message $message);
 }

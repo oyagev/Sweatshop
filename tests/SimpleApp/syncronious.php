@@ -10,7 +10,7 @@ use Sweatshop\Message\Message;
 //Define the worker class
 //here or somewhere else...
 class EchoWorker extends Worker{
-    function _doExecute(Message $message){
+    function work(Message $message){
         $params =  $message->getParams();
         return $params['value'];
     }
