@@ -114,9 +114,6 @@ To actually execute this worker, we will create a command-line script:
 
     run-workers.php
     <?php
-    use Sweatshop\Queue\GearmanQueue;
-    use Sweatshop\Message\Message;
-    use Sweatshop\Queue\InternalQueue;
     use Sweatshop\Sweatshop;
     
     $sweatshop = new Sweatshop();
