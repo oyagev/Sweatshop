@@ -25,10 +25,10 @@ Lets consider the following (simple) Worker:
     use Sweatshop\Message\Message;
     use Sweatshop\Worker\Worker;
     class EchoWorker extends Worker{
-    	function work(Message $message){
-		    $params =  $message->getParams();
-		    return $params['value'];
-	}
+        function work(Message $message){
+            $params =  $message->getParams();
+            return $params['value'];
+        }
     }
     
 This worker merely takes a predefined value from the received message and returns it.
@@ -37,25 +37,19 @@ To use Sweatshop, we first instantiate the class:
     <?php
     $sweatshop = new Sweatshop();
 
-Instantiate the Queue:
+Instantiate a new Queue:
 
-    use Sweatshop\Queue\InternalQueue;
-    $queue = new InternalQueue($sweatshop);
+    $queue = $sweatshop->addQueue('internal');
     
-Instantiate the Worker and register it to the Queue:
+Instantiate a new Worker and register it to the Queue:
     
     //Don't forget to include the Worker class
-    $worker = new EchoWorker($sweatshop);
-    $queue->registerWorker('topic:test:echo', $worker);
-
-Finally, we attache the Queue to Sweatshop:
-
-    $sweatshop->addQueue($queue);
+    $sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
     
 Once we're done setting Sweatshop, we're ready to start dispatching messages:
 
     
-    $results = $sweatshop->pushMessageQuick('topic:test:echo',array(
+    $results = $sweatshop->pushMessageQuick('topic:test',array(
         'value' => 3		
     ));
     print_r($results);
@@ -65,10 +59,6 @@ Complete code:
     <?php
     
     use Sweatshop\Sweatshop;
-    use Sweatshop\Worker\Worker;
-    use Sweatshop\Queue\InternalQueue;
-    use Sweatshop\Message\Message;
-    
     
     //Define the worker class
     //here or somewhere else...
@@ -81,13 +71,11 @@ Complete code:
     
     //Setup Sweatshop, Queue and Worker
     $sweatshop = new Sweatshop();
-    $queue = new InternalQueue($sweatshop);
-    $worker = new EchoWorker($sweatshop);
-    $queue->registerWorker('topic:test:echo', $worker);
-    $sweatshop->addQueue($queue);
+    $queue = $sweatshop->addQueue('internal');
+    $sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
     
     //Invoke Workers for the message
-    $results = $sweatshop->pushMessageQuick('topic:test:echo',array(
+    $results = $sweatshop->pushMessageQuick('topic:test',array(
         'value' => 3        
     ));
     print_r($results);
@@ -110,18 +98,14 @@ Consider the following (shortened) example:
 
     //Setup Sweatshop, Queue and Worker
     $sweatshop = new Sweatshop();
-    $queue = new GearmanQueue($sweatshop);
-    $sweatshop->addQueue($queue);
+    $sweatshop->addQueue('gearman');
     
-    //Create a new Message
-    $message = new Message('topic:test:echo',array(
+    //Dispatch message to Workers
+    $results = $sweatshop->pushMessageQuick('topic:test',array(
         'value' => 3        
     ));
-    
-    //Invoke Workers for the message
-    $results = $sweatshop->pushMessage($message);
 
-We replace the "InternalQueue" with "GearmanQueue", which naturally uses Gearman server as job server. Also, since workers will be executed in a separate process, we don't need to define them now!
+We replace the "internal" Queue with "gearman", which naturally uses Gearman server as job server. Also, since workers will be executed in a separate process, we don't need to define them now!
 
 This time, the application will dispatch the message as a "background job" to an external gearman server, not waiting for Workers execution.
 Hence, we can expect "$results" array to be empty.
@@ -136,10 +120,8 @@ To actually execute this worker, we will create a command-line script:
     use Sweatshop\Sweatshop;
     
     $sweatshop = new Sweatshop();
-    $queue = new GearmanQueue($sweatshop,array());
-    $worker = new EchoWorker($sweatshop);
-    $queue->registerWorker('topic:test:echo', $worker);
-    $sweatshop->addQueue($queue);
+    $queue = $sweatshop->addQueue('gearman',array());
+    $sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
 
     $sweatshop->runWorkers(); //run those workers!
 
@@ -228,7 +210,7 @@ Running this script should yield 4 processes: 1 parent process and 3 child proce
 #### Refreshing Processes
 We can also set some conditions, by which processes will be killed gracefully and new processes will replace them:
 
-    $queue = new GearmanQueue($sweatshop,array(
+    $queue = $sweatshop->addQueue('gearman', array(
         'max_work_cycles' => 3, //maximum work cycles this process will execute
         'max_memory_per_thread'=> 10000000 //maximum memory this process can consume
     ));
