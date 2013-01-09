@@ -1,5 +1,5 @@
 <phpunit
-	bootstrap="../../main.php"
+	bootstrap="../../vendor/autoload.php"
 	varbose="true"
 >
 </phpunit>
