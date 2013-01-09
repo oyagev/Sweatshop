@@ -32,7 +32,7 @@ class ThreadsManager{
 						//do nothing - we're the parent
 					}else{
 						//we're probably the child - so break the loop and exit
-						return $res;
+						exit(0);
 					}
 				}
 			}elseif ($options['min_threads_per_worker'] > 0){
