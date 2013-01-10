@@ -69,7 +69,7 @@ class GearmanQueue extends Queue{
 			$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
 		}
 	}
-	public function _doRunWorkers($options=array()){
+	public function _doRunWorkers(){
 		$this->_gmclient = NULL;
 		$this->_gmworker = NULL;
 		

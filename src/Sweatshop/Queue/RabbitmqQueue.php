@@ -53,7 +53,7 @@ class RabbitmqQueue extends Queue{
 		array_push($this->_workersQueues[$topic],$worker);
 		
 	}
-	function _doRunWorkers($options=array()){
+	function _doRunWorkers(){
 		
 		foreach($this->_workersQueues as $topic => $workers){
 			foreach($workers as $worker){

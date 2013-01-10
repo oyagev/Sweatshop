@@ -28,7 +28,7 @@ class InternalQueue extends Queue{
 		return TRUE;
 	}
 	
-	protected function _doRunWorkers($options=array()){
+	protected function _doRunWorkers(){
 		;
 	}
 	

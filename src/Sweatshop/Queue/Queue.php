@@ -18,6 +18,19 @@ abstract class Queue implements MessageableInterface{
 	private $_workers = array();
 	protected $_options = array();
 	
+	public static function toClassName($queueName){
+		if (class_exists($queueName)){
+			return $queueName;
+		}else{
+			$newname = 'Sweatshop\\Queue\\'.ucfirst($queueName) . 'Queue';
+			if (class_exists($newname)){
+				return $newname;
+			}else{
+				throw new \InvalidArgumentException("Unable to find queue: ".$queueName);
+			}
+		}
+	} 
+	
 	public function __construct(Sweatshop $sweatshop, $options=array()){
 		$this->setDependencies($sweatshop->getDependencies());
 		$this->_options = array_merge(array(
@@ -28,7 +41,7 @@ abstract class Queue implements MessageableInterface{
 	}
 	
 	public function __destruct(){
-		$this->getLogger()->info(sprintf('Queue "%s": tearing down',get_class($this)));
+		$this->getLogger()->debug(sprintf('Queue "%s": tearing down',get_class($this)));
 	}
 	
 	function setDependencies(\Pimple $di){
@@ -44,7 +57,7 @@ abstract class Queue implements MessageableInterface{
 	 * @param Message $message
 	 */
 	public function pushMessage(Message $message){
-		$this->getLogger()->info(sprintf('Queue "%s" Pushing message id "%s"', get_class($this),$message->getId()));
+		$this->getLogger()->debug(sprintf('Queue "%s" Pushing message id "%s"', get_class($this),$message->getId()));
 		
 		try{
 			return $this->_doPushMessage($message);
@@ -60,7 +73,7 @@ abstract class Queue implements MessageableInterface{
 	 * @param Worker $worker
 	 */
 	public function registerWorker($topic , Worker $worker){
-		$this->getLogger()->info(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
+		$this->getLogger()->debug(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
 		
 		array_push($this->_workers , $worker);
 		try{
@@ -72,10 +85,10 @@ abstract class Queue implements MessageableInterface{
 		
 	}
 	
-	public function runWorkers($options){
+	public function runWorkers(){
 		try{
-			$this->getLogger()->info(sprintf('Queue "%s" Launching workers', get_class($this)));
-			return $this->_doRunWorkers($options);
+			$this->getLogger()->debug(sprintf('Queue "%s" Launching workers', get_class($this)));
+			return $this->_doRunWorkers();
 		}catch (\Exception $e){
 			$this->getLogger()->err(sprintf('Unable to run workers on queue "%s". Message was: %s',get_class($this),$e->getMessage()));
 		}
@@ -93,7 +106,7 @@ abstract class Queue implements MessageableInterface{
 	
 	abstract protected function _doRegisterWorker($topic , Worker $worker);
 	
-	abstract protected function _doRunWorkers($options=array());
+	abstract protected function _doRunWorkers();
 	
 	protected function workCycleStart(){
 		

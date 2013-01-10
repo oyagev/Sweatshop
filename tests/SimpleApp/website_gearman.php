@@ -20,10 +20,8 @@ $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
 $sweatshop->setLogger($logger);
 
-$queue = $sweatshop->addQueue('Sweatshop\\Queue\\InternalQueue');
-$sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
+$sweatshop->configureMessagesDispatcher( array('gearman'));
 
-$queue = $sweatshop->addQueue('gearman');
 
 $results = $sweatshop->pushMessageQuick('topic:test',array(
 	'value' => 3		
