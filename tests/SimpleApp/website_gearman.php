@@ -20,11 +20,14 @@ $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
 $sweatshop->setLogger($logger);
 
-$sweatshop->configureMessagesDispatcher( array('gearman'));
+$sweatshop->addQueue('gearman');
 
 
 $results = $sweatshop->pushMessageQuick('topic:test',array(
 	'value' => 3		
+));
+$results = $sweatshop->pushMessageQuick('topic:test2',array(
+		'value' => 5
 ));
 
 print_r($results);
