@@ -20,7 +20,7 @@ $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
 $sweatshop->setLogger($logger);
 
-$sweatshop->configureMessagesDispatcher( array('rabbitmq'));
+$sweatshop->addQueue('rabbitmq',array());
 
 
 $results = $sweatshop->pushMessageQuick('topic:test',array(

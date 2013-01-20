@@ -17,7 +17,7 @@ class ProcessWrapper{
 		$this->setDependencies($sweatshop->getDependencies());
 		$this->_queueClass = $queueClass;
 		$this->_options = array_merge(array(
-				'min_processes_per_queue' => 1,
+				'min_processes' => 1,
 		) , $options);
 		$this->_workers = $workers;
 		

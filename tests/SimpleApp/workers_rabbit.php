@@ -23,31 +23,13 @@ $sweatshop->setLogger($logger);
 require_once 'BackgroundPrintWorker.php';
 require_once 'BackgroundLoggerWorker.php';
 
-$configMessageDispacher = array('gearman');
+$sweatshop->addQueue('rabbitmq',array());
+
+$sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array());
+$sweatshop->registerWorker('rabbitmq', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array('min_processes' => 2));
 
 
-$configWorkersDispacher = array(
-	'queues' => array(
-		'rabbitmq' => array(
-			'workers'=> array(
-				'BackgroundPrintWorker' => array(
-					'topics' => array('topic:test')
-				),
-				'BackgroundLoggerWorker' => array(
-					'topics' => array('topic:test','topic:test2')
-				)
-			),
-			'options' => array(
-				'min_processes_per_queue' => 1
-			)
-		)
-	),
-	'options' => array(
-		'min_processes_per_queue' => 3	
-	)	
-);
 
-$sweatshop->configureWorkersDispather($configWorkersDispacher);
 $sweatshop->runWorkers();
 
 

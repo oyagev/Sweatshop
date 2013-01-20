@@ -19,9 +19,7 @@ use Sweatshop\Message\Message;
 
 class Sweatshop{
 	
-	protected $_queues = array();
 	protected $_di = NULL;
-	protected $_threadManagers = array();
 	protected $_messageDispatcher = NULL;
 	protected $_workersDispatcher = NULL;
 	
@@ -55,45 +53,16 @@ class Sweatshop{
 		$message = new Message($topic,$params);
 		return $this->pushMessage($message);
 	}
-	function addQueue($queue, $queueOptions = array()){
-		$queueObj = $queue;
-		
-		if (is_string($queue)){
-			if (class_exists($queue)){
-				$queueObj = new $queue($this,$queueOptions);
-			}else{
-				$newname = 'Sweatshop\\Queue\\'.ucfirst($queue) . 'Queue';
-				if (class_exists($newname)){
-					$queueObj = new $newname($this,$queueOptions);
-				}
-			}
-		}
-		
-		
-		if ($queueObj instanceOf Queue){
-			$this->getLogger()->info('Adding queue: '.get_class($queueObj));
-			array_push($this->_queues, $queueObj);
-			return $queueObj;
-		}else{
-			throw new \InvalidArgumentException("Unable to instantiate queue: ".$queue);
-		}
-		
+	
+	function addQueue($queue,$options=array()){
+		$queue_class = Queue::toClassName($queue); 
+		$queueObj = new $queue_class($this,$options);
+		$this->_messageDispatcher->addQueue($queueObj);
 	}
 	
-	function registerWorker(Queue $queue, $topic, $worker){
-		
-		if (is_string($worker) && class_exists($worker)){
-			$workerObj = new $worker($this);
-		}else{
-			$workerObj = $worker;
-		}
-		
-		if ($workerObj instanceOf Worker){
-			$queue->registerWorker($topic, $workerObj);
-			return $worker;
-		}else{
-			throw new \InvalidArgumentException("Unable to instantiate worker: ".$worker);
-		}
+	function registerWorker($queue, $topic, $worker, $options){
+		$queue_class = Queue::toClassName($queue);
+		$this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $options);
 	}
 	
 	
