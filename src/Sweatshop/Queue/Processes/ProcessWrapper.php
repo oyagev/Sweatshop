@@ -47,6 +47,7 @@ class ProcessWrapper{
 		$this->getLogger()->debug('Adding queue: '.$queueClass);
 		$queue = new $queueClass($this->_di['sweatshop'], $options);
 		foreach($workers as $workerClass=> $options){
+			if (!$workerClass) continue;
 			$topics = $options['topics'];
 			$worker = new $workerClass($this->_di['sweatshop']);
 			foreach($topics as $topic){

@@ -20,7 +20,13 @@ use Sweatshop\Message\Message;
 class Sweatshop{
 	
 	protected $_di = NULL;
+	/**
+	 * @var MessageDispatcher
+	 */
 	protected $_messageDispatcher = NULL;
+	/**
+	 * @var WorkersDispatcher
+	 */
 	protected $_workersDispatcher = NULL;
 	
 	function __construct(){
@@ -60,7 +66,7 @@ class Sweatshop{
 		$this->_messageDispatcher->addQueue($queueObj);
 	}
 	
-	function registerWorker($queue, $topic, $worker, $options){
+	function registerWorker($queue, $topic='', $worker=NULL, $options=array()){
 		$queue_class = Queue::toClassName($queue);
 		$this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $options);
 	}

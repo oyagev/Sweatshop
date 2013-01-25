@@ -27,7 +27,7 @@ class WorkersDispatcher {
 	}
 
 	
-	public function registerWorker($queue_class, $topics, $worker, $options){
+	public function registerWorker($queue_class, $topics=array(), $worker=NULL, $options=array()){
 		
 		if (!is_array($topics)){
 			$topics = array($topics);
