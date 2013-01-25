@@ -20,7 +20,7 @@ $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
 $sweatshop->setLogger($logger);
 
-$sweatshop->addQueue('gearman');
+$sweatshop->addQueue('GearmanExchange');
 
 
 $results = $sweatshop->pushMessageQuick('topic:test',array(
