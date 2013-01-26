@@ -45,14 +45,17 @@ class GearmanQueue extends Queue{
 		
 		$workerClass = get_class($worker);
 		$worker_topic = "$topic:$workerClass" ;
-		if (empty($this->_workersQueue[$topic])){
-			$this->_workersQueue[$topic] = array();
-		}
 		if (empty($this->_workersStack[$workerClass])){
 			$this->_workersStack[$workerClass] = array();
 		}
-		$this->_workersQueue[$topic][] = $worker;
 		$this->_workersStack[$worker_topic] = $worker;
+		
+		$message = new Message(GearmanExchangeQueue::TOPIC_ADD_WORKER , array(
+			'topics' => array(
+				$topic => $worker_topic
+			)	
+		));
+		$this->_doPushMessage($message);
 	}
 	
 	/**
@@ -64,12 +67,8 @@ class GearmanQueue extends Queue{
 			//Register a function on gearnam for every worker
 			$this->worker()->addFunction($worker_topic , array($this,'_executeWorkerBackground') );
 		}
-		foreach(array_keys($this->_workersQueue) as $topic){
-			//Register a global "worker function" that invokes all workers
-			$this->worker()->addFunction($topic , array($this,'_executeWorkers'));
-		}
 	}
-	public function _doRunWorkers($options=array()){
+	public function _doRunWorkers(){
 		$this->_gmclient = NULL;
 		$this->_gmworker = NULL;
 		
@@ -119,21 +118,6 @@ class GearmanQueue extends Queue{
 		return $this->_gmworker;
 	}
 	
-	public function _executeWorkers(\GearmanJob $job){
-		$workloadStr = $job->workload();
-		$topic = $job->functionName();
-		
-		$results = array();
-		if (!empty($this->_workersQueue[$topic])){
-			//send the message to each worker on the queue
-			foreach ($this->_workersQueue[$topic] as $worker){
-				$workerClass = get_class($worker);
-				$this->client()->doBackground("$topic:$workerClass" , $workloadStr);
-				$results[] = NULL;
-			}
-		}
-		return serialize($results);
-	}
 	
 	public function _executeWorkerBackground(\GearmanJob $job){
 		$workloadStr = $job->workload();

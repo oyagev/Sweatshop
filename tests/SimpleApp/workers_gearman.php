@@ -1,4 +1,6 @@
 <?php
+use Sweatshop\Worker\Gearman\ExchangeWorker;
+
 use Monolog\Handler\StreamHandler;
 
 use Monolog\Logger;
@@ -21,15 +23,16 @@ $sweatshop->setLogger($logger);
 
 
 require_once 'BackgroundPrintWorker.php';
-
-$queue = $sweatshop->addQueue('gearman', array('max_work_cycles' => 3, 'max_memory_per_thread'=> 10000000));
-$sweatshop->registerWorker($queue, 'topic:test', 'BackgroundPrintWorker');
-//$worker = new BackgroundPrintWorker($sweatshop);
-//$queue->registerWorker('topic:test', $worker);
+require_once 'BackgroundLoggerWorker.php';
 
 
+$sweatshop->addQueue('GearmanExchange',array());
+$sweatshop->registerWorker('GearmanExchange');
+$sweatshop->registerWorker('gearman', 'topic:test', 'BackgroundPrintWorker', array());
+$sweatshop->registerWorker('gearman', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array(
+		'max_work_cycles'=>3,
+		'min_processes' => 1));
 
 
-$sweatshop->runWorkers(array(
-	'min_threads_per_queue' => 3		
-));
+$sweatshop->runWorkers();
+

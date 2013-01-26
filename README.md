@@ -1,6 +1,7 @@
 # Sweatshop
 
-Sweatshop is a framework for executing asynchronous tasks in PHP with external separate workers.   
+Sweatshop is a framework for executing asynchronous tasks in PHP with external separate workers.
+
 Just create Worker classes, attach them to various Queues and dispatch your events and messages.   
 Sweatshop supports and monitors processes! Thus it's easy to create multiple workers and prevent queue locks and infinite loops.
 
@@ -13,117 +14,95 @@ In its core, Sweatshop defines "Queues", "Workers" and "Messages". A Worker is a
 
 A Queue is basically the manager. Each Queue has its own allocated workers, for specific "job topics" it supports. The Queue is responsible for delivering Messages to the appropriate Workers, monitor job execution and return the expected reply (if any) to the dispatcher.
 
-A Queue can be synchronous, thus working inside the application and blocking its operation until Workers' tasks are complete. 
-A Queue can also be asynchronous, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
+The Queue is asynchronous, delivering messages to Workers via message brokers such as RabbitMQ, Gearman and others, thus allow non-blocking operation and background processing.
 
 ## Usage
 
-The most basic usage of Sweatshop, though uncommon, is synchronous message processing.
-Lets consider the following (simple) Worker:
+The most basic usage of Sweatshop, is asynchronous message processing.
+
+Lets start with dispatching messages to Sweatshop.
+First instantiate the class:
+    
+    <?php
+    $sweatshop = new Sweatshop();
+
+Declare a listnening Queue:
+
+    $sweatshop->addQueue('rabbitmq',array());
+
+And dispatch messages:
+
+    $results = $sweatshop->pushMessageQuick('topic:test',array(
+        'value' => 3		
+    ));
+    
+Thats basically it!
+Here is the full example:
+
+    <?php
+    use Sweatshop\Sweatshop;
+        
+    $sweatshop = new Sweatshop();    
+    $sweatshop->addQueue('rabbitmq',array());
+    $results = $sweatshop->pushMessageQuick('topic:test1',array(
+        'value' => 3		
+    ));
+    $results = $sweatshop->pushMessageQuick('topic:test2',array(
+    		'value' => 5
+    ));
+    
+Above we've dispatched two messages. At this point, we do not care which or how many workers will work on each message, we just want it delivered.
+
+To actually work on messages, we have to deine workers. 
+Consider the following (simple) Worker:
 
     <?php
     use Sweatshop\Message\Message;
     use Sweatshop\Worker\Worker;
-    class EchoWorker extends Worker{
+    class BackgroundPrintWorker extends Worker{
         function work(Message $message){
             $params =  $message->getParams();
-            return $params['value'];
+            $topic = $message->getTopic();
+            printf("Processed job for topic '%s', value was '%s'".PHP_EOL,$topic,$params['value']);
         }
-    }
-    
-This worker merely takes a predefined value from the received message and returns it.
-To use Sweatshop, we first instantiate the class:
+	}
+
+The worker must extends the abstract "Worker" class and implement function "work".
+The above worker merely takes a predefined value from the received message and print it.
+
+Now to the more interesting part, lets run some workers!
+
+We first instantiate the class:
     
     <?php
     $sweatshop = new Sweatshop();
 
-Instantiate a new Queue:
+Again, declare a listening Queue as before:
 
-    $queue = $sweatshop->addQueue('internal');
+    $sweatshop->addQueue('rabbitmq',array());
     
-Instantiate a new Worker and register it to the Queue:
-    
-    //Don't forget to include the Worker class
-    $sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
-    
-Once we're done setting Sweatshop, we're ready to start dispatching messages:
+And register a worker on a Queue, with a specific topic:
 
+    $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array());
     
-    $results = $sweatshop->pushMessageQuick('topic:test',array(
-        'value' => 3		
-    ));
-    print_r($results);
+Above, the BackgroundPrintWorker will be registered with the RabbitMQ Queue to receive messages with topic "topic:test".
+Notice that we use the Worker class name, not actual instance. This is important for process management.
+
+And lastly, we launch workers:
+    
+    $sweatshop->runWorkers();
     
 Complete code:
 
-    <?php
-    
-    use Sweatshop\Sweatshop;
-    
-    //Define the worker class
-    //here or somewhere else...
-    class EchoWorker extends Worker{
-        function work(Message $message){
-            $params =  $message->getParams();
-            return $params['value'];
-        }
-    }
-    
-    //Setup Sweatshop, Queue and Worker
-    $sweatshop = new Sweatshop();
-    $queue = $sweatshop->addQueue('internal');
-    $sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
-    
-    //Invoke Workers for the message
-    $results = $sweatshop->pushMessageQuick('topic:test',array(
-        'value' => 3        
-    ));
-    print_r($results);
-    
-    /*
-    Expected Result:
-    
-    Array
-    (
-        [0] => 3
-    )
-     */
-
-
-### Running Asynchronous Tasks
-
-Above we used "InternalQueue" class to register workers that are invoked internally, as part of the application. To invoke the same Worker asynchronously, all we need is to attach it to a different Queue. 
-
-Consider the following (shortened) example:
-
-    //Setup Sweatshop, Queue and Worker
-    $sweatshop = new Sweatshop();
-    $sweatshop->addQueue('gearman');
-    
-    //Dispatch message to Workers
-    $results = $sweatshop->pushMessageQuick('topic:test',array(
-        'value' => 3        
-    ));
-
-We replace the "internal" Queue with "gearman", which naturally uses Gearman server as job server. Also, since workers will be executed in a separate process, we don't need to define them now!
-
-This time, the application will dispatch the message as a "background job" to an external gearman server, not waiting for Workers execution.
-Hence, we can expect "$results" array to be empty.
-
-To actually execute this worker, we will create a command-line script:
-
-    run-workers.php
+    /run-workers.php
     <?php
     use Sweatshop\Sweatshop;
     
     $sweatshop = new Sweatshop();
-    $queue = $sweatshop->addQueue('gearman',array());
-    $sweatshop->registerWorker($queue, 'topic:test', 'EchoWorker');
-
-    $sweatshop->runWorkers(); //run those workers!
-
-Here we define the Queue and Worker.
-Notice the last line that makes all the difference... 
+    $sweatshop->addQueue('rabbitmq',array());
+    $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array());
+    $sweatshop->runWorkers();
+    
 
 All you need to do now is launch this script from command-line:
 
@@ -198,23 +177,24 @@ The child process is responsible for a single Queue instance, running all attach
 #### Adding processes for each Queue
 You can set the minimum number of processes active for each Queue:
 
-    $sweatshop->runWorkers(array(
-        'min_threads_per_queue' => 3		
+    $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array(
+        'min_processes' => 3
     ));
+    
 
-Running this script should yield 4 processes: 1 parent process and 3 child processes, each running the same Queue.
+Running this script should yield 4 processes: 1 parent process and 3 child processes, each running the same Worker.
 
 #### Refreshing Processes
 We can also set some conditions, by which processes will be killed gracefully and new processes will replace them:
 
-    $queue = $sweatshop->addQueue('gearman', array(
+    $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array(
         'max_work_cycles' => 3, //maximum work cycles this process will execute
-        'max_memory_per_thread'=> 10000000 //maximum memory this process can consume
+        'max_process_memory'=> 10000000 //maximum memory this process can consume, in bytes
     ));
 
 Here we set 2 parameters that are evaluated after every work cycle.
 Once a condition is met, the process will exit and be replaced by a new, fresh process.
 
-Please notice that the last settings are defined per Queue.
+Please notice that the last settings are defined per Worker.
 
 

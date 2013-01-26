@@ -1,6 +1,4 @@
 <?php
-use Sweatshop\Queue\RabbitmqQueue;
-
 use Monolog\Handler\StreamHandler;
 
 use Monolog\Logger;
@@ -23,13 +21,15 @@ $sweatshop->setLogger($logger);
 
 
 require_once 'BackgroundPrintWorker.php';
+require_once 'BackgroundLoggerWorker.php';
 
-$queue = new RabbitmqQueue($sweatshop,array('max_work_cycles' => 3, 'max_memory_per_thread'=> 10000000));
-$worker = new BackgroundPrintWorker($sweatshop);
-$queue->registerWorker('topic:test', $worker);
-$sweatshop->addQueue($queue);
+$sweatshop->addQueue('rabbitmq',array());
+
+$sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array());
+$sweatshop->registerWorker('rabbitmq', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array('min_processes' => 2));
 
 
-$sweatshop->runWorkers(array(
-	'min_threads_per_queue' => 3	
-));
+
+$sweatshop->runWorkers();
+
+
