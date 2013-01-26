@@ -35,7 +35,7 @@ abstract class Queue implements MessageableInterface{
 		$this->setDependencies($sweatshop->getDependencies());
 		$this->_options = array_merge(array(
 			'max_work_cycles' => -1, 
-			'max_memory_per_thread' => -1
+			'max_process_memory' => -1
 		),$this->_options , $options);
 		
 	}
@@ -123,7 +123,7 @@ abstract class Queue implements MessageableInterface{
 		if ($this->_options['max_work_cycles']===0){
 			$this->getLogger()->info(sprintf('Queue "%s" maxed out its allowed work cycles',get_class($this)));
 			return TRUE;
-		}elseif($this->_options['max_memory_per_thread'] > 0 && memory_get_usage(true) >= $this->_options['max_memory_per_thread']){
+		}elseif($this->_options['max_process_memory'] > 0 && memory_get_usage(true) >= $this->_options['max_process_memory']){
 			$this->getLogger()->info(sprintf('Queue "%s" maxed out its allowed memory usage',get_class($this)), array('memory'=> memory_get_usage(true)));
 			return TRUE;
 		}
