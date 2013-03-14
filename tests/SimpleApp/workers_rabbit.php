@@ -26,7 +26,7 @@ require_once 'BackgroundLoggerWorker.php';
 $sweatshop->addQueue('rabbitmq',array());
 
 $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array());
-$sweatshop->registerWorker('rabbitmq', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array('min_processes' => 2));
+$sweatshop->registerWorker('rabbitmq', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array('min_processes' => 1));
 
 
 

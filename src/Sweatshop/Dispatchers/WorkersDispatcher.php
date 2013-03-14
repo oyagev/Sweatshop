@@ -1,6 +1,8 @@
 <?php
 namespace Sweatshop\Dispatchers;
 
+use Sweatshop\Queue\Processes\ProcessGroup;
+
 use Sweatshop\Queue\Queue;
 
 use Sweatshop\Sweatshop;
@@ -13,13 +15,11 @@ use Sweatshop\Queue\Threads\ThreadsManager;
 
 class WorkersDispatcher {
 	
-	protected $_defaultOptions = array(
-			'min_processes' => 1,
-			'max_work_cycles' => -1
-	);
+	
 	protected $_di = NULL;
 	protected $_childPIDs = array();
 	protected $_processes = array();
+	protected $_processGroups = array();
 	
 	public function __construct(Sweatshop $sweatshop){
 		$this->setDependencies($sweatshop->getDependencies());
@@ -33,6 +33,10 @@ class WorkersDispatcher {
 			$topics = array($topics);
 		}
 		
+		$processGroup = new ProcessGroup($this->_di['sweatshop'], $queue_class, $worker, $topics,$options);
+		array_push($this->_processGroups, $processGroup);
+		
+		/*
 		$processArr = array(
 			'queue' 	=> $queue_class,
 			'topics'	=> $topics,
@@ -40,33 +44,24 @@ class WorkersDispatcher {
 			'options' 	=> array_merge($this->_defaultOptions,$options) 	
 		);
 		array_push($this->_processes, $processArr);
-		
+		*/
 	}
 	
 	public function runWorkers(){
 		
-		
-		foreach($this->_processes as $processArr){
-			$queueOptions = $processArr['options'];
-			$queueClass = $processArr['queue'];
-			$workerClass = $processArr['worker'];
-			$workerOptions = array(
-				'topics'	=> $processArr['topics']
-			);
-			$this->getLogger()->debug('Launching Queue with options',array('queue'=>$queueClass,'options'=>$queueOptions));
-			
-			for($i=0; $i<$queueOptions['min_processes']; $i++){
-				$process = new ProcessWrapper($this->_di['sweatshop'], $queueClass, array($workerClass => $workerOptions), $queueOptions);
-				$this->forkAndRun($process);
-			}
+		/* @var $processGroup ProcessGroup */
+		foreach($this->_processGroups as $processGroup){
+			$processGroup->syncProcesses();
 		}
-
+		
+		
 		while ( ($pid=pcntl_wait($status)) !=-1){
-			if (!empty($this->_childPIDs[$pid])){
-				$process = $this->_childPIDs[$pid];
-				unset($this->_childPIDs[$pid]);
-				$this->forkAndRun($process);
+			
+			
+			foreach($this->_processGroups as $processGroup){
+				$processGroup->notifyDeadProcess($pid,$status);
 			}
+			
 		}
 	}
 	

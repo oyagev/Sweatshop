@@ -1,0 +1,198 @@
+<?php
+namespace Sweatshop\Queue\Processes;
+
+use Sweatshop\Sweatshop;
+
+class ProcessGroup{
+	
+	protected $queueClass;
+	protected $workerClass;
+	protected $topics;
+	protected $options ;
+	protected $_di;
+	protected $PIDs = array();
+	
+	function __construct(Sweatshop $sweatshop, $queueClass, $workerClass, $topics, $options=array()){
+		$this->setDependencies($sweatshop->getDependencies());
+		$this->setQueueClass($queueClass);
+		$this->setWorkerClass($workerClass);
+		$this->setTopics($topics);
+		$options = array_merge(array(
+			'min_processes' => 1,
+			'max_work_cycles' => -1
+		),$options);
+		$this->setOptions($options);
+		$this->PIDs = array_fill(0, $options['min_processes'], 0);
+	}
+	
+	public function syncProcesses(){
+		$queueClass = $this->getQueueClass();
+		$queueOptions = $this->getOptions();
+		$workerClass = $this->getWorkerClass();
+		$workerOptions = array(
+			'topics'	=> $this->getTopics()
+		);
+		$this->getLogger()->debug('Launching Queue with options',array('queue'=>$queueClass,'options'=>$queueOptions));
+		foreach($this->PIDs as $pid){
+			if ($pid==0){
+				$process = new ProcessWrapper($this->_di['sweatshop'], $queueClass, array($workerClass => $workerOptions), $queueOptions);
+				$this->forkAndRun($process);
+				
+			}
+		}
+	}
+	
+	protected function forkAndRun(ProcessWrapper $processWrapper){
+		$pid = $processWrapper->fork();
+		if ($pid == 0){
+			//I'm the child!
+			//Run the workers
+			$processWrapper->runWorkers();
+			//Basically if we're here, this means that the processes terminated!
+			exit(0);
+		}else{
+			//We're the parent process!
+			//Keep the process wrapper with PID
+			$this->addPID($pid);
+		}
+	}
+	
+	public function notifyDeadProcess($pid,$status){
+		//Check if process belongs to this group
+		if(!in_array($pid, $this->PIDs)) return;
+		
+		$this->getLogger()->debug(sprintf("child PID %d got signal %d" ,$pid ,$status));
+
+		switch($status){
+			case SIGKILL:
+				//completely kill the process, no resurrection
+				$this->removePID($pid);
+				$this->removeProcessSlot();
+				break;
+			case SIGSTOP:
+				break;
+			case SIGTERM:
+				//remove PID from list, resurrection allowed
+				$this->removePID($pid);
+				break;
+			default:
+				
+				break;
+			
+				
+				
+			
+		}
+		
+		$this->syncProcesses();
+		
+		
+		
+	}
+	
+	public function addPID($pid){
+		if (in_array($pid, $this->PIDs))
+			return;
+		
+		$index = array_search(0, $this->PIDs);
+		if ($index === FALSE){
+			$this->PIDs[] = $pid;
+		}else{
+			$this->PIDs[$index] = $pid;
+		}
+		sort($this->PIDs);
+	}
+	public function removePID($pid){
+		$index = array_search($pid, $this->PIDs);
+		if ($index === FALSE){
+			
+		}else{
+			$this->PIDs[$index] = 0;
+		}
+		sort($this->PIDs);
+	}
+	public function addProcessSlot(){
+		$this->PIDs[] = 0;
+		sort($this->PIDs);
+	}
+	
+	public function removeProcessSlot(){
+		if (count($this->PIDs)==0) return;
+		$index = array_search(0, $this->PIDs);
+		if ($index === FALSE){
+			$this->killProcess($this->PIDs[0],false);
+			$index = 0;
+			
+		}
+		unset($this->PIDs[$index]);
+		sort($this->PIDs);
+		
+		
+	}
+	
+	public function killProcess($pid,$resurrection=false){
+		
+	}
+
+	public function getQueueClass()
+	{
+	    return $this->queueClass;
+	}
+
+	public function setQueueClass($queueClass)
+	{
+	    $this->queueClass = $queueClass;
+	}
+
+	public function getWorkerClass()
+	{
+	    return $this->workerClass;
+	}
+
+	public function setWorkerClass($workerClass)
+	{
+	    $this->workerClass = $workerClass;
+	}
+
+	public function getTopics()
+	{
+	    return $this->topics;
+	}
+
+	public function setTopics($topics)
+	{
+	    $this->topics = $topics;
+	}
+
+	public function getOptions()
+	{
+	    return $this->options;
+	}
+
+	public function setOptions($options)
+	{
+	    $this->options = $options;
+	}
+	public function setDependencies(\Pimple $di){
+		$this->_di = $di;
+	}
+	
+	public function getDependencies(){
+		return $this->_di;
+	}
+	public function setLogger(Logger $logger){
+		$this->_di['logger'] = $logger;
+	}
+	/**
+	 * @return Logger
+	 */
+	public function getLogger(){
+		return $this->_di['logger'];
+	
+	}
+	
+	
+	
+	
+
+}
