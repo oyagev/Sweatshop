@@ -6,9 +6,6 @@ use Sweatshop\Worker\Worker;
 
 class BackgroundLoggerWorker extends Worker{
 	function tearUp(){
-		//exit;
-		//sds();
-		//throw new Exception('d');
 		
 	}
 	function work(Message $message){

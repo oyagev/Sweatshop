@@ -19,7 +19,8 @@ class ProcessGroup{
 		$this->setTopics($topics);
 		$options = array_merge(array(
 			'min_processes' => 1,
-			'max_work_cycles' => -1
+			'max_work_cycles' => -1,
+			'process_title' => ''
 		),$options);
 		$this->setOptions($options);
 		$this->PIDs = array_fill(0, $options['min_processes'], 0);
@@ -46,6 +47,7 @@ class ProcessGroup{
 		$pid = $processWrapper->fork();
 		if ($pid == 0){
 			//I'm the child!
+			$this->setProcessTitle();
 			//Run the workers
 			$processWrapper->runWorkers();
 			//Basically if we're here, this means that the processes terminated!
@@ -64,20 +66,20 @@ class ProcessGroup{
 		$this->getLogger()->debug(sprintf("child PID %d got signal %d" ,$pid ,$status));
 
 		switch($status){
-			case SIGKILL:
-				//completely kill the process, no resurrection
-				$this->removePID($pid);
-				$this->removeProcessSlot();
-				break;
 			case SIGSTOP:
 				break;
 			case SIGTERM:
 				//remove PID from list, resurrection allowed
 				$this->removePID($pid);
 				break;
+			
+			case SIGKILL:
 			default:
-				
+				//completely kill the process, no resurrection
+				$this->removePID($pid);
+				$this->removeProcessSlot();
 				break;
+				
 			
 				
 				
@@ -133,6 +135,8 @@ class ProcessGroup{
 	public function killProcess($pid,$resurrection=false){
 		
 	}
+	
+	
 
 	public function getQueueClass()
 	{
@@ -191,7 +195,14 @@ class ProcessGroup{
 	
 	}
 	
-	
+	protected function setProcessTitle(){
+		if (!empty($this->options['process_title'])){
+			if (function_exists('setproctitle')){
+				setproctitle($this->options['process_title']);
+			}
+			
+		}
+	}
 	
 	
 
