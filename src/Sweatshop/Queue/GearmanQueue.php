@@ -28,9 +28,6 @@ class GearmanQueue extends Queue{
 	
 	protected function _doPushMessage(Message $message){
 		$results = array();
-		//$task = $this->client()->addTask($message->getTopic() , serialize($message) , $results );
-		//$this->client()->runTasks();
-		//var_dump($task);
 		$res =  $this->client()->doBackground($message->getTopic() , serialize($message));
 		
 		return array();

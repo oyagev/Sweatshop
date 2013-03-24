@@ -105,7 +105,6 @@ class RabbitmqQueue extends Queue{
 	
 	public function _executeWorkerBackground($msg){
 		$message = unserialize($msg->body);
-		//var_dump($message);
 	} 
 	
 	/**
