@@ -121,10 +121,10 @@ abstract class Queue implements MessageableInterface{
 	}
 	protected function isCandidateForGracefulKill(){
 		if ($this->_options['max_work_cycles']===0){
-			$this->getLogger()->info(sprintf('Queue "%s" maxed out its allowed work cycles',get_class($this)));
+			$this->getLogger()->debug(sprintf('Queue "%s" maxed out its allowed work cycles',get_class($this)));
 			return TRUE;
 		}elseif($this->_options['max_process_memory'] > 0 && memory_get_usage(true) >= $this->_options['max_process_memory']){
-			$this->getLogger()->info(sprintf('Queue "%s" maxed out its allowed memory usage',get_class($this)), array('memory'=> memory_get_usage(true)));
+			$this->getLogger()->debug(sprintf('Queue "%s" maxed out its allowed memory usage',get_class($this)), array('memory'=> memory_get_usage(true)));
 			return TRUE;
 		}
 		return FALSE;

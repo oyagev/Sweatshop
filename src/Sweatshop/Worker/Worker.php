@@ -29,12 +29,12 @@ abstract class Worker implements MessageableInterface{
 	}
 	
 	public function __destruct(){
-		$this->getLogger()->info(sprintf('Worker "%s": tearing down',get_class($this)));
+		$this->getLogger()->debug(sprintf('Worker "%s": tearing down',get_class($this)));
 		$this->tearDown();
 	}
 	
 	public function execute(Message $message){
-		$this->getLogger()->info(sprintf('Worker "%s" executing message "%s"',get_class($this),$message->getId()));
+		$this->getLogger()->debug(sprintf('Worker "%s" executing message "%s"',get_class($this),$message->getId()));
 		return $this->work($message);
 	}
 	
