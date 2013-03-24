@@ -49,11 +49,16 @@ class WorkersDispatcher {
 	
 	public function runWorkers(){
 		
+		declare(ticks = 1);
+		
+		
 		/* @var $processGroup ProcessGroup */
 		foreach($this->_processGroups as $processGroup){
 			$processGroup->syncProcesses();
 		}
 		
+		pcntl_signal(SIGINT, array($this,'signal_handlers'),false);
+		pcntl_signal(SIGTERM, array($this,'signal_handlers'),false);
 		
 		while ( ($pid=pcntl_wait($status)) !=-1){
 			
@@ -63,6 +68,15 @@ class WorkersDispatcher {
 			}
 			
 		}
+	}
+	
+	public function signal_handlers($signo){
+		
+		$this->getLogger()->debug(sprintf("Sweatshop got signal %d",$signo));
+		foreach($this->_processGroups as $processGroup){
+			$processGroup->killAll();
+		}
+		exit;
 	}
 	
 	

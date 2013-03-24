@@ -135,7 +135,7 @@ class ProcessGroup{
 		if (count($this->PIDs)==0) return;
 		$index = array_search(0, $this->PIDs);
 		if ($index === FALSE){
-			$this->killProcess($this->PIDs[0],false);
+			$this->killProcess($this->PIDs[0]);
 			$index = 0;
 			
 		}
@@ -145,7 +145,16 @@ class ProcessGroup{
 		
 	}
 	
-	public function killProcess($pid,$resurrection=false){
+	public function killProcess($pid){
+		posix_kill($pid, SIGKILL);
+		
+	}
+	
+	public function killAll(){
+		foreach($this->PIDs as $pid){
+			$this->getLogger()->debug(sprintf("Exiting PID %d",$pid));
+			$this->killProcess($pid);
+		}
 		
 	}
 	
