@@ -51,7 +51,7 @@ class ProcessGroup{
 			//Run the workers
 			$processWrapper->runWorkers();
 			//Basically if we're here, this means that the processes terminated!
-			exit(0);
+			exit(1);
 		}else{
 			//We're the parent process!
 			//Keep the process wrapper with PID
@@ -63,28 +63,41 @@ class ProcessGroup{
 		//Check if process belongs to this group
 		if(!in_array($pid, $this->PIDs)) return;
 		
-		$this->getLogger()->debug(sprintf("child PID %d got signal %d" ,$pid ,$status));
-
-		switch($status){
-			case SIGSTOP:
-				break;
-			case SIGTERM:
-				//remove PID from list, resurrection allowed
-				$this->removePID($pid);
-				break;
+		if (pcntl_wifexited($status)){
+			$exit_status = pcntl_wexitstatus($status);
+			$this->getLogger()->debug(sprintf("child PID %d exited with status %d" ,$pid ,$exit_status));
+			switch($exit_status){
+				case 1:
+					$this->removePID($pid);
+					break;
+				default:
+					//completely kill the process, no resurrection
+					$this->removePID($pid);
+					$this->removeProcessSlot();
+					break;
+			}
+		}else{
 			
-			case SIGKILL:
-			default:
-				//completely kill the process, no resurrection
-				$this->removePID($pid);
-				$this->removeProcessSlot();
-				break;
-				
+			$this->getLogger()->debug(sprintf("child PID %d got signal %d" ,$pid ,$status));
 			
-				
-				
-			
+			switch($status){
+				case SIGSTOP:
+					break;
+				case SIGTERM:
+					//remove PID from list, resurrection allowed
+					$this->removePID($pid);
+					break;
+						
+				case SIGKILL:
+				default:
+					//completely kill the process, no resurrection
+					$this->removePID($pid);
+					$this->removeProcessSlot();
+					break;	
+			}
 		}
+		
+		
 		
 		$this->syncProcesses();
 		

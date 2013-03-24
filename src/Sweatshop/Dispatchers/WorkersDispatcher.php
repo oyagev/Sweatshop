@@ -94,8 +94,10 @@ class WorkersDispatcher {
 			//I'm the child!
 			//Run the workers
 			$processWrapper->runWorkers();
+			
 			//Basically if we're here, this means that the processes terminated!
-			exit(0);
+			
+			exit(1);
 		}else{
 			//We're the parent process!
 			//Keep the process wrapper with PID
