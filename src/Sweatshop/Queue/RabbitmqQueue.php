@@ -64,7 +64,7 @@ class RabbitmqQueue extends Queue{
 				$queue = new \AMQPQueue($this->getChannel());
 				$queue->setName($worker_queue_name);
 				$queue->setFlags(AMQP_DURABLE);
-				$queue->declare();
+				$queue->declareQueue();
 				$queue->bind($this->getExchangeName(), $topic);
 				
 				
@@ -145,7 +145,7 @@ class RabbitmqQueue extends Queue{
 			$exchange->setName($this->getExchangeName());
 			$exchange->setType(AMQP_EX_TYPE_DIRECT);
 			$exchange->setFlags(AMQP_DURABLE);
-			$exchange->declare();
+			$exchange->declareExchange();
 			$this->_exchange = $exchange;
 		}
 		return $this->_exchange;
