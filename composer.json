@@ -25,7 +25,6 @@
         
     },
     "suggest" : {
-    	"ext-amqp": "(>1.0) Necessary for RabbitMQ",
     	"ext-gearman" : "(>1.0) Necessary for Gearman"
     	
     },
