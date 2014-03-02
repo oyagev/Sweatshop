@@ -75,17 +75,6 @@ class RabbitmqQueue extends Queue{
                 }catch (\Exception $e){
                     echo($e);exit;
                 }
-
-
-                /*
-				$exchange = $this->getExchange();
-				
-				$queue = new AMQPQueue($this->getChannel());
-				$queue->setName($worker_queue_name);
-				$queue->setFlags(AMQP_DURABLE);
-				$queue->declareQueue();
-				$queue->bind($this->getExchangeName(), $topic);
-				*/
 				
 				array_push($this->_queues,array(
 					'queue' => $worker_queue_name,
@@ -164,21 +153,6 @@ class RabbitmqQueue extends Queue{
 	}
 
 
-    /**
-     * @deprecated Moved to PhpAmqpLib, Exchange class does not exist. See method declareExchange()
-     */
-    /*
-    private function getExchange(){
-		if (!$this->_exchange){
-			$exchange   = new \AMQPExchange($this->getChannel());
-			$exchange->setName($this->getExchangeName());
-			$exchange->setType(AMQP_EX_TYPE_DIRECT);
-			$exchange->setFlags(AMQP_DURABLE);
-			$exchange->declareExchange();
-			$this->_exchange = $exchange;
-		}
-		return $this->_exchange;
-	}*/
 
     private function declareExchange(){
         $this->getChannel()->exchange_declare(
