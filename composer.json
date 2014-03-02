@@ -20,7 +20,8 @@
     "require": {
     	"php": ">=5.3.0",
         "monolog/monolog": "1.2.*",
-        "pimple/pimple" : "1.x"
+        "pimple/pimple" : "1.x",
+        "videlalvaro/php-amqplib": "2.2.*"
         
     },
     "suggest" : {
