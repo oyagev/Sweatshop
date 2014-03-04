@@ -158,6 +158,7 @@ class RabbitmqQueue extends Queue{
         $this->getChannel()->exchange_declare(
             $this->getExchangeName(),
             'direct',
+            false,
             true
         );
     }
