@@ -34,8 +34,7 @@ class RabbitmqQueue extends Queue{
 	
 	function _doPushMessage(Message $message){
 
-        $msg = new AMQPMessage(serialize($message));
-
+        $msg = new AMQPMessage(serialize($message),array('delivery_mode' => 2));
         $channel = $this->getChannel();
         $channel->basic_publish(
             $msg,
