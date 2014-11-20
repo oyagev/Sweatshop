@@ -1,6 +1,9 @@
 <?php
 namespace Sweatshop\Queue;
 
+use PhpAmqpLib\Channel\AMQPChannel;
+use PhpAmqpLib\Connection\AMQPConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 use Sweatshop\Worker\Worker;
 
 use Sweatshop\Message\Message;
@@ -25,23 +28,26 @@ class RabbitmqQueue extends Queue{
 	
 	function __destruct(){
 		//$this->getChannel()->close();
-		$this->getConnection()->disconnect();
+		$this->getConnection()->close();
 		parent::__destruct();
 	}
 	
 	function _doPushMessage(Message $message){
+
+        $msg = new AMQPMessage(serialize($message),array('delivery_mode' => 2));
+        $channel = $this->getChannel();
+        $channel->basic_publish(
+            $msg,
+            $this->getExchangeName(),
+            $message->getTopic()
+        );
+
+
+        /*
 		$exchange = $this->getExchange();
 		$message = $exchange->publish(serialize($message), $message->getTopic(), AMQP_NOPARAM, array('delivery_mode'=>2) );
-		
-		/*
-		$this->getChannel()->exchange_declare($this->getExchangeName(), 'direct',false,true,false);
-		
-		//create a durable message (survive server restart)
-		$msg = new AMQPMessage(serialize($message),array(
-			'delivery_mode' => 2	
-		));
-		$this->getChannel()->basic_publish($msg, $this->getExchangeName(), $message->getTopic());
 		*/
+
 		
 		
 	}
@@ -54,45 +60,50 @@ class RabbitmqQueue extends Queue{
 		
 	}
 	function _doRunWorkers(){
-		
+
 		foreach($this->_workersQueues as $topic => $workers){
 			foreach($workers as $worker){
 				$worker_queue_name = get_class($this).':'.get_class($worker);
-				
-				$exchange = $this->getExchange();
-				
-				$queue = new \AMQPQueue($this->getChannel());
-				$queue->setName($worker_queue_name);
-				$queue->setFlags(AMQP_DURABLE);
-				$queue->declareQueue();
-				$queue->bind($this->getExchangeName(), $topic);
-				
+
+                $channel = $this->getChannel();
+
+                try{
+                    $channel->queue_declare($worker_queue_name,false,true, false,false);
+
+                    $channel->queue_bind($worker_queue_name,$this->getExchangeName(),$topic);
+                }catch (\Exception $e){
+                    echo($e);exit;
+                }
 				
 				array_push($this->_queues,array(
-					'queue' => $queue,
+					'queue' => $worker_queue_name,
 					'worker' => $worker
 					
 				));
 			}
 		}
+
 		
 		while(!$this->isCandidateForGracefulKill() ) {
 			foreach($this->_queues as $q){
 				$queue = $q['queue'];
 				$worker = $q['worker'];
-				$message = $queue->get();
+
+                $message = $channel->basic_get($queue);
+
+
+				//$message = $queue->get();
 				if ($message){
-					$workload = unserialize($message->getBody());
-		
-					//$worker = (!empty($this->_workersStack[$worker_topic]) ) ? $this->_workersStack[$worker_topic] : NULL;
+
+					$workload = unserialize($message->body);
 					if ($worker instanceof Worker){
 						$results =  $worker->execute($workload);
-						//$channel->basic_ack($msg->delivery_info['delivery_tag']);
 					}else{
 						$results=array();
 						//TODO: Log error
 					}
-					$queue->ack($message->getDeliveryTag());
+                    $channel->basic_ack($message->delivery_info['delivery_tag']);
+					//$queue->ack($message->getDeliveryTag());
 					$this->workCycleEnd();
 					
 				}else{
@@ -108,17 +119,18 @@ class RabbitmqQueue extends Queue{
 	} 
 	
 	/**
-	 * @return \AMQPConnection;
+	 * @return AMQPConnection;
 	 */
 	private function getConnection(){
+        //var_dump($this->_options);exit;
 		if (!$this->_conn){
-			$this->_conn = new \AMQPConnection(array(
-				'host' => $this->_options['host'], 
-				'port' => $this->_options['port'], 
-				'login' => $this->_options['user'], 
-				'password' => $this->_options['password']
-			));
-			$this->_conn->connect();
+			$this->_conn = new AMQPConnection(
+				$this->_options['host'],
+				$this->_options['port'],
+				$this->_options['user'],
+				$this->_options['password']
+			);
+			//$this->_conn->connect();
 			//TODO: check if connection is alive
 		}
 		return $this->_conn;
@@ -128,8 +140,8 @@ class RabbitmqQueue extends Queue{
 	 */
 	private function getChannel(){
 		if (!$this->_channel){
-		
-		$this->_channel = new \AMQPChannel($this->getConnection());
+            $this->_channel = $this->getConnection()->channel();
+            $this->declareExchange();
 		}
 		return $this->_channel;
 		
@@ -138,16 +150,16 @@ class RabbitmqQueue extends Queue{
 	private function getExchangeName(){
 		return 'default';
 	}
-	private function getExchange(){
-		if (!$this->_exchange){
-			$exchange   = new \AMQPExchange($this->getChannel());
-			$exchange->setName($this->getExchangeName());
-			$exchange->setType(AMQP_EX_TYPE_DIRECT);
-			$exchange->setFlags(AMQP_DURABLE);
-			$exchange->declareExchange();
-			$this->_exchange = $exchange;
-		}
-		return $this->_exchange;
-	}
+
+
+
+    private function declareExchange(){
+        $this->getChannel()->exchange_declare(
+            $this->getExchangeName(),
+            'direct',
+            false,
+            true
+        );
+    }
 	
 }
