@@ -73,7 +73,7 @@ abstract class Queue implements MessageableInterface{
 	 * @param Worker $worker
 	 */
 	public function registerWorker($topic , Worker $worker){
-		$this->getLogger()->debug(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
+		$this->getLogger()->info(sprintf('Queue "%s" Registering new worker "%s" on topic "%s"',get_class($this),get_class($worker),$topic));
 		
 		array_push($this->_workers , $worker);
 		try{

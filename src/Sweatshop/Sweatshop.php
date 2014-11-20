@@ -73,7 +73,7 @@ class Sweatshop{
 	
 	
 	function runWorkers(){
-		$this->getLogger()->debug('Sweatshop: Launching workers');
+		$this->getLogger()->info('Sweatshop: Launching workers');
 		$this->_workersDispatcher->runWorkers();
 	}
 	
