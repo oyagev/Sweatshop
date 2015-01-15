@@ -9,13 +9,13 @@ use Sweatshop\Worker\Worker;
 use Sweatshop\Message\Message;
 
 class RabbitmqQueue extends Queue{
-	
+
 	private $_conn = NULL;
 	private $_channel = NULL;
 	private $_workersQueues = array();
 	private $_queues = array();
 	private $_exchange = NULL;
-	
+
 	function __construct($sweatshop,$options=array()){
 		parent::__construct($sweatshop,$options);
 		$this->_options = array_merge(array(
@@ -25,15 +25,14 @@ class RabbitmqQueue extends Queue{
 				'password' => 'guest'
 		),$this->_options,$options);
 	}
-	
+
 	function __destruct(){
 		//$this->getChannel()->close();
 		$this->getConnection()->close();
 		parent::__destruct();
 	}
-	
-	function _doPushMessage(Message $message){
 
+	function _doPushMessage(Message $message){
         $msg = new AMQPMessage(serialize($message),array('delivery_mode' => 2));
         $channel = $this->getChannel();
         $channel->basic_publish(
@@ -42,82 +41,73 @@ class RabbitmqQueue extends Queue{
             $message->getTopic()
         );
 
-
         /*
-		$exchange = $this->getExchange();
-		$message = $exchange->publish(serialize($message), $message->getTopic(), AMQP_NOPARAM, array('delivery_mode'=>2) );
+    		$exchange = $this->getExchange();
+	    	$message = $exchange->publish(serialize($message), $message->getTopic(), AMQP_NOPARAM, array('delivery_mode'=>2) );
 		*/
-
-		
-		
 	}
+
 	function _doRegisterWorker($topic, Worker $worker){
-		
 		if (empty($this->_workersQueues[$topic])){
 			$this->_workersQueues[$topic] = array();
 		}
-		array_push($this->_workersQueues[$topic],$worker);
-		
-	}
-	function _doRunWorkers(){
 
+		array_push($this->_workersQueues[$topic],$worker);
+	}
+
+	function _doRunWorkers(){
 		foreach($this->_workersQueues as $topic => $workers){
 			foreach($workers as $worker){
 				$worker_queue_name = get_class($this).':'.get_class($worker);
-
                 $channel = $this->getChannel();
 
                 try{
                     $channel->queue_declare($worker_queue_name,false,true, false,false);
-
                     $channel->queue_bind($worker_queue_name,$this->getExchangeName(),$topic);
-                }catch (\Exception $e){
-                    echo($e);exit;
+                } catch (\Exception $e) {
+                    echo($e);
+                    exit;
                 }
-				
+
 				array_push($this->_queues,array(
 					'queue' => $worker_queue_name,
 					'worker' => $worker
-					
 				));
 			}
 		}
 
-		
 		while(!$this->isCandidateForGracefulKill() ) {
 			foreach($this->_queues as $q){
 				$queue = $q['queue'];
 				$worker = $q['worker'];
 
                 $message = $channel->basic_get($queue);
-
-
 				//$message = $queue->get();
-				if ($message){
+                if ($message){
+                    if (@!$workload = unserialize($message->body)){
+                        $this->getLogger()->info("Sweatshop Error: Unable to process message due to corrupt serialization - " . $message->body . " || " . serialize($message));
+                        $results = array();
+                    } elseif ($worker instanceof Worker){
+                        $results =  $worker->execute($workload);
+                    }else{
+                        $results=array();
+                        //TODO: Log error
+                    }
 
-					$workload = unserialize($message->body);
-					if ($worker instanceof Worker){
-						$results =  $worker->execute($workload);
-					}else{
-						$results=array();
-						//TODO: Log error
-					}
                     $channel->basic_ack($message->delivery_info['delivery_tag']);
-					//$queue->ack($message->getDeliveryTag());
-					$this->workCycleEnd();
-					
-				}else{
-					usleep(100000);
-				}
+                    //$queue->ack($message->getDeliveryTag());
+                    $this->workCycleEnd();
+                } else {
+                    usleep(100000);
+                }
 			}
-			
 		}
 	}
-	
+
 	public function _executeWorkerBackground($msg){
 		$message = unserialize($msg->body);
-	} 
-	
+	}
+
 	/**
 	 * @return AMQPConnection;
 	 */
@@ -133,8 +123,10 @@ class RabbitmqQueue extends Queue{
 			//$this->_conn->connect();
 			//TODO: check if connection is alive
 		}
+
 		return $this->_conn;
 	}
+
 	/**
 	 * @return AMQPChannel
 	 */
@@ -143,15 +135,13 @@ class RabbitmqQueue extends Queue{
             $this->_channel = $this->getConnection()->channel();
             $this->declareExchange();
 		}
+
 		return $this->_channel;
-		
 	}
-	
+
 	private function getExchangeName(){
 		return 'default';
 	}
-
-
 
     private function declareExchange(){
         $this->getChannel()->exchange_declare(
@@ -161,5 +151,4 @@ class RabbitmqQueue extends Queue{
             true
         );
     }
-	
 }
