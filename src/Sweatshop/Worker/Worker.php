@@ -52,7 +52,7 @@ abstract class Worker implements MessageableInterface{
 	
 	
 	protected function tearUp(){
-		
+        $this->getLogger()->info(sprintf('Worker "%s": tearing up',get_class($this)));
 	}
 	protected function tearDown(){
 	

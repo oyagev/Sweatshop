@@ -34,7 +34,7 @@ class MessageDispatcher implements MessageableInterface{
 	} 
 	
 	public function pushMessage(Message $message){
-		$this->getLogger()->debug(sprintf('Sweatshop pushing message id "%s"',$message->getId()), array('message_id'=>$message->getId()));
+		$this->getLogger()->debug(sprintf('Sweatshop pushing message id "%s"',$message->getId()), array('message_id'=>$message->getId(), "topic" => $message->getTopic()));
 		$result = array();
 		foreach ($this->_queues as $queue){
 			$res = $queue->pushMessage($message);
