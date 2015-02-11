@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop\Dispatchers;
 
+use Pimple\Container;
 use Sweatshop\Message\Message;
 
 use Sweatshop\Interfaces\MessageableInterface;
@@ -44,7 +45,7 @@ class MessageDispatcher implements MessageableInterface{
 		}
 		return $result;
 	}
-	public function setDependencies(\Pimple $di){
+	public function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	

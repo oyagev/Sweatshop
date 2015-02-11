@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop\Queue\Processes;
 
+use Pimple\Container;
 use Sweatshop\Sweatshop;
 
 use Sweatshop\Queue\Queue;
@@ -57,7 +58,7 @@ class ProcessWrapper{
 		return $queue;
 	}
 	
-	protected function setDependencies(\Pimple $di){
+	protected function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	/**

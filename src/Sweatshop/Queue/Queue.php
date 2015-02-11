@@ -3,6 +3,7 @@ namespace Sweatshop\Queue;
 
 use Monolog\Logger;
 
+use Pimple\Container;
 use Sweatshop\Sweatshop;
 
 use Sweatshop\Config\Config;
@@ -44,7 +45,7 @@ abstract class Queue implements MessageableInterface{
 		$this->getLogger()->debug(sprintf('Queue "%s": tearing down',get_class($this)));
 	}
 	
-	function setDependencies(\Pimple $di){
+	function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	

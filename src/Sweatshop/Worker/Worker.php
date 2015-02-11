@@ -3,6 +3,7 @@ namespace Sweatshop\Worker;
 
 use Monolog\Logger;
 
+use Pimple\Container;
 use Sweatshop\Sweatshop;
 
 use Sweatshop\Interfaces\MessageableInterface;
@@ -20,7 +21,7 @@ abstract class Worker implements MessageableInterface{
 		$this->tearUp();
 	}
 	
-	function setDependencies(\Pimple $di){
+	function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	

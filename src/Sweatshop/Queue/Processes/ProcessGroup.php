@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop\Queue\Processes;
 
+use Pimple\Container;
 use Sweatshop\Sweatshop;
 
 class ProcessGroup{
@@ -199,7 +200,7 @@ class ProcessGroup{
 	{
 	    $this->options = $options;
 	}
-	public function setDependencies(\Pimple $di){
+	public function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	

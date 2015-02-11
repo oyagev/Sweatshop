@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop;
 
+use Pimple\Container;
 use Sweatshop\Dispatchers\WorkersDispatcher;
 
 use Sweatshop\Dispatchers\MessageDispatcher;
@@ -31,14 +32,14 @@ class Sweatshop{
 	
 	function __construct(){
 		
-		$di = new \Pimple();
-		$di['logger'] = $di->share(function($di){
+		$di = new Container();
+		$di['logger'] = (function($di){
 			$logger = new Logger('Sweatshop');
 			$logger->pushHandler(new NullHandler());
 			return $logger;
 			
 		}) ;
-		$di['config'] = $di->share(function($di){
+		$di['config'] = (function($di){
 			
 			return array();
 				
@@ -84,7 +85,7 @@ class Sweatshop{
 		$this->_workersDispatcher->configure($config);
 	}
 	
-	function setDependencies(\Pimple $di){
+	function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	

@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop\Dispatchers;
 
+use Pimple\Container;
 use Sweatshop\Queue\Processes\ProcessGroup;
 
 use Sweatshop\Queue\Queue;
@@ -83,7 +84,7 @@ class WorkersDispatcher {
 	
 	
 	
-	public function setDependencies(\Pimple $di){
+	public function setDependencies(Container $di){
 		$this->_di = $di;
 	}
 	
