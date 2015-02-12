@@ -18,6 +18,8 @@ abstract class Queue implements MessageableInterface{
 	protected $_di;
 	private $_workers = array();
 	protected $_options = array();
+    private $_logger;
+
 	
 	public static function toClassName($queueName){
 		if (class_exists($queueName)){
@@ -47,6 +49,7 @@ abstract class Queue implements MessageableInterface{
 	
 	function setDependencies(Container $di){
 		$this->_di = $di;
+        $this->_logger = $di['logger'];
 	}
 	
 	public function getOptions(){
@@ -100,7 +103,7 @@ abstract class Queue implements MessageableInterface{
 	 * @return Logger
 	 */
 	public function getLogger(){
-		return $this->_di['logger'];
+		return $this->_logger;
 	}
 	
 	abstract protected function _doPushMessage(Message $message);
