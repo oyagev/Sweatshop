@@ -93,6 +93,7 @@ class Sweatshop{
 		return $this->_di;
 	}
 	function setLogger(Logger $logger){
+        unset($this->_di['logger']);
 		$this->_di['logger'] = $logger;
 	}
 	function getLogger(){
@@ -100,6 +101,7 @@ class Sweatshop{
 	
 	}
 	function setConfig($config){
+        unset($this->_di['config']);
 		$this->_di['config'] = $config;
 	}
 	function getConfig(){
