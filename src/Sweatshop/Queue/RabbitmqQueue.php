@@ -22,7 +22,9 @@ class RabbitmqQueue extends Queue{
 				'host' => 'localhost',
 				'port' => '5672',
 				'user' => 'guest',
-				'password' => 'guest'
+				'password' => 'guest',
+                'polling_delay_max' => 5000000,
+                'polling_delay_min' => 100000
 		),$this->_options,$options);
 	}
 
@@ -75,6 +77,7 @@ class RabbitmqQueue extends Queue{
 				));
 			}
 		}
+        $pollingDelay = $this->_options['polling_delay_min'];
 
 		while(!$this->isCandidateForGracefulKill() ) {
 			foreach($this->_queues as $q){
@@ -95,10 +98,11 @@ class RabbitmqQueue extends Queue{
                     }
 
                     $channel->basic_ack($message->delivery_info['delivery_tag']);
-                    //$queue->ack($message->getDeliveryTag());
+                    $pollingDelay = max($pollingDelay / 2 , $this->_options['polling_delay_min']);
                     $this->workCycleEnd();
                 } else {
-                    usleep(100000);
+                    $pollingDelay = min($pollingDelay * 2 , $this->_options['polling_delay_max']);
+                    usleep($pollingDelay);
                 }
 			}
 		}
