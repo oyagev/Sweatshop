@@ -222,7 +222,9 @@ class ProcessGroup{
 		if (!empty($this->options['process_title'])){
 			if (function_exists('setproctitle')){
 				setproctitle($this->options['process_title']);
-			}
+			} else if (function_exists('cli_set_process_title')){
+				cli_set_process_title($this->options['process_title']);
+			} 
 			
 		}
 	}
