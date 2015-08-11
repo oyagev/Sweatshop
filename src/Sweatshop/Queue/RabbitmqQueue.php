@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop\Queue;
 
+use Monolog\Logger;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -16,9 +17,9 @@ class RabbitmqQueue extends Queue
     private $_queues = array();
     private $_exchange = NULL;
 
-    function __construct($sweatshop, $options = array())
+    function __construct(Logger $logger, $options = array())
     {
-        parent::__construct($sweatshop, $options);
+        parent::__construct($logger, $options);
         $this->_options = array_merge(array(
             'host' => 'localhost',
             'port' => '5672',
