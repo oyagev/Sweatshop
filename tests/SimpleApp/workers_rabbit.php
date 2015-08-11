@@ -14,10 +14,10 @@ use Sweatshop\Sweatshop;
 
 require_once __DIR__.'/../../vendor/autoload.php';
 
-$sweatshop = new Sweatshop();
+
 $logger = new Logger('website');
 $logger->pushHandler(new StreamHandler("php://stdout"));
-$sweatshop->setLogger($logger);
+$sweatshop = new Sweatshop($logger);
 
 
 
@@ -28,7 +28,7 @@ $sweatshop->addQueue('rabbitmq',array());
 
 $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array('process_title'=> 'Sweatshop:test-printer', 'max_work_cycles'=>4));
 $sweatshop->registerWorker('rabbitmq', 'topic:test', 'BackgroundPrintWorker', array('process_title'=> 'Sweatshop:test-printer', 'max_work_cycles'=>4));
-//$sweatshop->registerWorker('rabbitmq', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array('min_processes' => 2, 'process_title'=> 'Sweatshop:test-logger'));
+//$sweatshop->registerWorker('rabbitmq', array('topic:test','topic:test2'), 'BackgroundLoggerWorker', array('min_processes' => 2, 'process_title'=> 'Sweatshop:test-logger'));*/
 
 
 

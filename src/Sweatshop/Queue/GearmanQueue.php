@@ -1,6 +1,7 @@
 <?php
 namespace Sweatshop\Queue;
 
+use Monolog\Logger;
 use Sweatshop\Queue\Exceptions\QueueServerUnavailableException;
 
 use Sweatshop\Config\Config;
@@ -18,8 +19,8 @@ class GearmanQueue extends Queue{
 	private $_workers = array();
 	
 	
-	function __construct($sweatshop,$options=array()){
-		parent::__construct($sweatshop,$options);
+	function __construct(Logger $logger,$options=array()){
+		parent::__construct($logger,$options);
 		$this->_options = array_merge(array(
 			'host' => 'localhost',
 			'port' => '4730'		
@@ -65,6 +66,7 @@ class GearmanQueue extends Queue{
 			$this->worker()->addFunction($worker_topic , array($this,'_executeWorkerBackground') );
 		}
 	}
+
 	public function _doRunWorkers(){
 		$this->_gmclient = NULL;
 		$this->_gmworker = NULL;
@@ -114,8 +116,7 @@ class GearmanQueue extends Queue{
 		}
 		return $this->_gmworker;
 	}
-	
-	
+
 	public function _executeWorkerBackground(\GearmanJob $job){
 		$workloadStr = $job->workload();
 		$worker_topic = $job->functionName();
@@ -135,16 +136,4 @@ class GearmanQueue extends Queue{
 	
 		return serialize($results);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }

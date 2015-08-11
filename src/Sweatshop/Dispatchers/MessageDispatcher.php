@@ -1,25 +1,20 @@
 <?php
 namespace Sweatshop\Dispatchers;
 
-use Pimple\Container;
+use Monolog\Logger;
 use Sweatshop\Message\Message;
-
 use Sweatshop\Interfaces\MessageableInterface;
-
 use Sweatshop\Queue\Queue;
-
-use Sweatshop\Sweatshop;
 
 class MessageDispatcher implements MessageableInterface{
 	protected $_globalOptions = array();
 	protected $_queues = array();
-	protected $_di = NULL;
-	
-	public function __construct(Sweatshop $sweatshop){
-		$this->setDependencies($sweatshop->getDependencies());
-		
+	protected $logger = NULL;
+
+	public function __construct(Logger $logger){
+		$this->setLogger($logger);
 	}
-	
+
 	public function configure($config=array()){
 		foreach($config as $queueName){
 			$queueClass = Queue::toClassName($queueName);
@@ -27,12 +22,12 @@ class MessageDispatcher implements MessageableInterface{
 			$this->addQueue($queue);
 		}
 	}
-		
+
 	public function addQueue(Queue $queue){
 		array_push($this->_queues, $queue);
 		return $this;
-	} 
-	
+	}
+
 	public function pushMessage(Message $message){
 		$this->getLogger()->debug(sprintf('Sweatshop pushing message id "%s"',$message->getId()), array('message_id'=>$message->getId(), "topic" => $message->getTopic()));
 		$result = array();
@@ -41,23 +36,17 @@ class MessageDispatcher implements MessageableInterface{
 			if (is_array($res)){
 				$result = array_merge($result, $res);
 			}
-				
+
 		}
 		return $result;
 	}
-	public function setDependencies(Container $di){
-		$this->_di = $di;
-	}
-	
-	public function getDependencies(){
-		return $this->_di;
-	}
+
 	public function setLogger(Logger $logger){
-		$this->_di['logger'] = $logger;
+		$this->logger = $logger;
 	}
-	public function getLogger(){
-		return $this->_di['logger'];
-	
+
+    public function getLogger(){
+		return $this->logger;
+
 	}
-	
 }

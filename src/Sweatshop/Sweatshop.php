@@ -1,115 +1,112 @@
 <?php
 namespace Sweatshop;
 
+use Monolog\Logger;
 use Pimple\Container;
-use Sweatshop\Dispatchers\WorkersDispatcher;
-
 use Sweatshop\Dispatchers\MessageDispatcher;
-
+use Sweatshop\Dispatchers\WorkersDispatcher;
+use Sweatshop\Message\Message;
+use Sweatshop\Queue\Queue;
 use Sweatshop\Worker\Worker;
 
-use Sweatshop\Queue\Threads\ThreadsManager;
+//use Sweatshop\Queue\Threads\ThreadsManager;
 
-use Monolog\Handler\NullHandler;
+class Sweatshop
+{
+    protected $_di = NULL;
+    /* @var Logger */
+    private $logger;
+    private $config;
 
-use Monolog\Logger;
+    /**
+     * @var MessageDispatcher
+     */
+    protected $_messageDispatcher = NULL;
+    /**
+     * @var WorkersDispatcher
+     */
+    protected $_workersDispatcher = NULL;
 
-use Sweatshop\Queue\Queue;
+    function __construct(Logger $logger, $config = array())
+    {
+        $this->logger = $logger;
+        $this->_messageDispatcher = new MessageDispatcher($logger);
+        $this->_workersDispatcher = new WorkersDispatcher($logger, $this->getDependencies(Worker::WORKER_TITLE_PREFIX));
+    }
 
-use Sweatshop\Message\Message;
+    function pushMessage(Message $message)
+    {
+        $result = $this->_messageDispatcher->pushMessage($message);
+        return $result;
+    }
 
-class Sweatshop{
-	
-	protected $_di = NULL;
-	/**
-	 * @var MessageDispatcher
-	 */
-	protected $_messageDispatcher = NULL;
-	/**
-	 * @var WorkersDispatcher
-	 */
-	protected $_workersDispatcher = NULL;
-	
-	function __construct(){
-		
-		$di = new Container();
-		$di['logger'] = (function($di){
-			$logger = new Logger('Sweatshop');
-			$logger->pushHandler(new NullHandler());
-			return $logger;
-			
-		}) ;
-		$di['config'] = (function($di){
-			
-			return array();
-				
-		}) ;
-		$di['sweatshop'] = $this;
-		
-		$this->setDependencies($di);
-		$this->_messageDispatcher = new MessageDispatcher($this);
-		$this->_workersDispatcher = new WorkersDispatcher($this);
-	}
-	
-	function pushMessage(Message $message){
-		$result = $this->_messageDispatcher->pushMessage($message);
-		return $result;
-	}
-	
-	function pushMessageQuick($topic , $params = array()){
-		$message = new Message($topic,$params);
-		return $this->pushMessage($message);
-	}
-	
-	function addQueue($queue,$options=array()){
-		$queue_class = Queue::toClassName($queue); 
-		$queueObj = new $queue_class($this,$options);
-		$this->_messageDispatcher->addQueue($queueObj);
-	}
-	
-	function registerWorker($queue, $topic='', $worker=NULL, $options=array()){
-		$queue_class = Queue::toClassName($queue);
-		$this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $options);
-	}
-	
-	
-	function runWorkers(){
-		$this->getLogger()->info('Sweatshop: Launching workers');
-		$this->_workersDispatcher->runWorkers();
-	}
-	
-	function configureMessagesDispatcher($config){
-		$this->_messageDispatcher->configure($config);
-	}
-	function configureWorkersDispather($config){
-		$this->_workersDispatcher->configure($config);
-	}
-	
-	function setDependencies(Container $di){
-		$this->_di = $di;
-	}
-	
-	function getDependencies(){
-		return $this->_di;
-	}
-	function setLogger(Logger $logger){
-        unset($this->_di['logger']);
-		$this->_di['logger'] = $logger;
-	}
-	function getLogger(){
-		return $this->_di['logger'];
-	
-	}
-	function setConfig($config){
-        unset($this->_di['config']);
-		$this->_di['config'] = $config;
-	}
-	function getConfig(){
-		return $this->_di['config'];
-	}
-	
-	
-	
-	
-	
+    function pushMessageQuick($topic, $params = array())
+    {
+        $message = new Message($topic, $params);
+        return $this->pushMessage($message);
+    }
+
+    function addQueue($queue, $options = array())
+    {
+        $queue_class = Queue::toClassName($queue);
+        $queueObj = new $queue_class($this, $options);
+        $this->_messageDispatcher->addQueue($queueObj);
+    }
+
+    function registerWorker($queue, $topic = '', $worker = NULL, $options = array())
+    {
+        $queue_class = Queue::toClassName($queue);
+        $this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $options);
+    }
+
+    function runWorkers()
+    {
+        $this->getLogger()->info('Sweatshop: Launching workers');
+        $this->_workersDispatcher->runWorkers();
+    }
+
+    function configureMessagesDispatcher($config)
+    {
+        $this->_messageDispatcher->configure($config);
+    }
+
+    function configureWorkersDispather($config)
+    {
+        $this->_workersDispatcher->configure($config);
+    }
+
+    function setLogger(Logger $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    function getLogger()
+    {
+        return $this->logger;
+    }
+
+    function setConfig($config)
+    {
+        $this->config = $config;
+    }
+
+    function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * @param Container $di
+     */
+    function setDependencies(Container $di){
+        $this->_di = $di;
+    }
+
+    /**
+     * @param bool $dependence
+     * @return null
+     */
+    function getDependencies($dependence = false){
+        return $dependence ? (isset($this->_di[$dependence]) ? $this->_di[$dependence] : null) : $this->_di;
+    }
 }

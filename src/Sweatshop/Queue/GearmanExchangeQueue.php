@@ -17,9 +17,8 @@ class GearmanExchangeQueue extends GearmanQueue{
 	
 	protected $_topic_exchange = array();
 	
-	function __construct($sweatshop,$options=array()){
-		parent::__construct($sweatshop,$options);
-		
+	function __construct($logger,$options=array()){
+		parent::__construct($logger,$options);
 	}
 	
 	function _doPushMessage(Message $message){
@@ -27,9 +26,7 @@ class GearmanExchangeQueue extends GearmanQueue{
 		$res =  $this->client()->doBackground(self::TOPIC_ALL , serialize($message));
 		return array();
 	}
-	
-	
-	
+
 	protected function _doRegisterWorker($topic, Worker $worker){
 		
 	}
