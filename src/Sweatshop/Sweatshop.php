@@ -49,7 +49,7 @@ class Sweatshop
     function addQueue($queue, $options = array())
     {
         $queue_class = Queue::toClassName($queue);
-        $queueObj = new $queue_class($this, $options);
+        $queueObj = new $queue_class($this->getLogger(), $options);
         $this->_messageDispatcher->addQueue($queueObj);
     }
 
