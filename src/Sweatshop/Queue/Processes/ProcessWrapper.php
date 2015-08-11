@@ -60,7 +60,7 @@ class ProcessWrapper
         $this->getLogger()->debug('Adding queue: ' . $queueClass);
 
         /* @var $queue Queue */
-        $queue = new $queueClass($options);
+        $queue = new $queueClass($this->getLogger(), $options);
 
         foreach ($workers as $workerClass => $options) {
             if (!$workerClass) continue;
