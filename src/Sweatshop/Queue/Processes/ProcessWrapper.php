@@ -37,6 +37,7 @@ class ProcessWrapper
     {
         declare(ticks = 1);
         $pid = pcntl_fork();
+
         if ($pid == -1) {
             $this->getLogger()->fatal(sprintf('%s: Queue "%s" Cannot fork a new thread', get_class($this), get_class($this->_queue)));
         } else if ($pid) {
@@ -70,13 +71,11 @@ class ProcessWrapper
             if (!$workerClass) continue;
 
             /* try to load worker from the container */
-            $worker = $this->injectedWorker instanceof Worker ? $this->injectedWorker : new $workerClass($this->getLogger());
+            $worker = $this->injectedWorker ? $this->injectedWorker : new $workerClass($this->getLogger());
             foreach ($options['topics'] as $topic) {
                 $queue->registerWorker($topic, $worker);
             }
         }
-
-        $this->getLogger()->debug('Queue: ' . $queueClass . " was added.");
 
         return $queue;
     }

@@ -57,7 +57,9 @@ class Sweatshop
     {
         $queue_class = Queue::toClassName($queue);
         $injectedWorkers = $this->getDependencies(Worker::WORKER_TITLE_PREFIX);
-        $injectedWorker = isset($injectedWorkers[$topic]) ? $injectedWorkers[$topic] : null;
+
+        $injectedTopicSlug = preg_replace("/[\/]/", ".", $topic);
+        $injectedWorker = isset($injectedWorkers[$injectedTopicSlug]) ? $injectedWorkers[$injectedTopicSlug] : null;
 
         $this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $injectedWorker, $options);
     }
