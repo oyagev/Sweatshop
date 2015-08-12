@@ -4,6 +4,7 @@ namespace Sweatshop\Queue\Processes;
 use Monolog\Logger;
 use Pimple\Container;
 use Sweatshop\Queue\Queue;
+use Sweatshop\Worker\Worker;
 
 class ProcessWrapper
 {
@@ -11,6 +12,7 @@ class ProcessWrapper
     protected $_queueClass;
     protected $_options;
     protected $_workers;
+    protected $injectedWorker;
 
     /**
      * @var Container
@@ -19,7 +21,8 @@ class ProcessWrapper
     protected $_PIDs = array();
     protected $logger;
 
-    function __construct(Logger $logger, $queueClass, $workers, $options = array())
+
+    function __construct(Logger $logger, $queueClass, $workers, Worker $injectedWorker = null,$options = array())
     {
         $this->logger = $logger;
         $this->_queueClass = $queueClass;
@@ -27,6 +30,7 @@ class ProcessWrapper
             'min_processes' => 1,
         ), $options);
         $this->_workers = $workers;
+        $this->injectedWorker = $injectedWorker;
     }
 
     public function fork()
@@ -66,7 +70,7 @@ class ProcessWrapper
             if (!$workerClass) continue;
 
             /* try to load worker from the container */
-            $worker = new $workerClass($this->getLogger());
+            $worker = $this->injectedWorker instanceof Worker ? $this->injectedWorker : new $workerClass($this->getLogger());
             foreach ($options['topics'] as $topic) {
                 $queue->registerWorker($topic, $worker);
             }

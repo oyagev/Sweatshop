@@ -2,30 +2,34 @@
 namespace Sweatshop\Queue\Processes;
 
 use Monolog\Logger;
+use Sweatshop\Worker\Worker;
 
 class ProcessGroup
 {
-
     protected $queueClass;
     protected $workerClass;
     protected $topics;
     protected $options;
-    protected $_di;
+    protected $_injectedWorker;
     protected $PIDs = array();
     private $logger;
 
-    function __construct(Logger $logger, $queueClass, $workerClass, $topics, $options = array())
+    function __construct(Logger $logger, $queueClass, $workerClass, Worker $injectedWorker = null, $topics, $options = array())
     {
-        $this->logger = $logger;
-        $this->setQueueClass($queueClass);
-        $this->setWorkerClass($workerClass);
-        $this->setTopics($topics);
+        $this
+            ->setLogger($logger)
+            ->setQueueClass($queueClass)
+            ->setWorkerClass($workerClass)
+            ->setTopics($topics)
+            ->setInjectedWorker($injectedWorker);
+
         $options = array_merge(array(
             'min_processes' => 1,
             'max_work_cycles' => -1,
             'process_title' => ''
         ), $options);
         $this->setOptions($options);
+
         $this->PIDs = array_fill(0, $options['min_processes'], 0);
     }
 
@@ -46,6 +50,7 @@ class ProcessGroup
                     $this->logger,
                     $queueClass,
                     array($workerClass => $workerOptions),
+                    $this->getInjectedWorker(),
                     $queueOptions
                 ));
             }
@@ -179,6 +184,7 @@ class ProcessGroup
     public function setQueueClass($queueClass)
     {
         $this->queueClass = $queueClass;
+        return $this;
     }
 
     public function getWorkerClass()
@@ -189,6 +195,7 @@ class ProcessGroup
     public function setWorkerClass($workerClass)
     {
         $this->workerClass = $workerClass;
+        return $this;
     }
 
     public function getTopics()
@@ -199,6 +206,7 @@ class ProcessGroup
     public function setTopics($topics)
     {
         $this->topics = $topics;
+        return $this;
     }
 
     public function getOptions()
@@ -209,11 +217,13 @@ class ProcessGroup
     public function setOptions($options)
     {
         $this->options = $options;
+        return $this;
     }
 
     public function setLogger(Logger $logger)
     {
         $this->logger = $logger;
+        return $this;
     }
 
     /**
@@ -232,7 +242,26 @@ class ProcessGroup
             } else if (function_exists('cli_set_process_title')) {
                 cli_set_process_title($this->options['process_title']);
             }
-
         }
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getInjectedWorker()
+    {
+        return $this->_injectedWorker;
+    }
+
+    /**
+     * @param mixed $injectedWorker
+     * @return $this;
+     */
+    public function setInjectedWorker($injectedWorker)
+    {
+        $this->_injectedWorker = $injectedWorker;
+        return $this;
     }
 }

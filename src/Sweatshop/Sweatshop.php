@@ -56,7 +56,10 @@ class Sweatshop
     function registerWorker($queue, $topic = '', $worker = NULL, $options = array())
     {
         $queue_class = Queue::toClassName($queue);
-        $this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $options);
+        $injectedWorkers = $this->getDependencies(Worker::WORKER_TITLE_PREFIX);
+        $injectedWorker = isset($injectedWorkers[$topic]) ? $injectedWorkers[$topic] : null;
+
+        $this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $injectedWorker, $options);
     }
 
     function runWorkers()

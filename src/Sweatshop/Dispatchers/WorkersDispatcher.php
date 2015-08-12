@@ -21,7 +21,7 @@ class WorkersDispatcher
      */
     /**
      * @param Logger $logger
-     * @param Worker[]|null $injectedWorkers
+     * @param Worker[]|null $injectedWorkers array of all workers from pimple container
      */
     public function __construct(Logger $logger, $injectedWorkers)
     {
@@ -29,13 +29,13 @@ class WorkersDispatcher
         $this->injectedWorkers = $injectedWorkers;
     }
 
-    public function registerWorker($queue_class, $topics = array(), $worker = NULL, $options = array())
+    public function registerWorker($queue_class, $topics = array(), $worker = NULL, Worker $injectedWorker = null, $options = array())
     {
         if (!is_array($topics)) {
             $topics = array($topics);
         }
 
-        $processGroup = new ProcessGroup($this->logger, $queue_class, $worker, $topics, $options);
+        $processGroup = new ProcessGroup($this->logger, $queue_class, $worker, $injectedWorker, $topics, $options);
         array_push($this->_processGroups, $processGroup);
     }
 
