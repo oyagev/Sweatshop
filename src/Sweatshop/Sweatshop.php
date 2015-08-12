@@ -56,10 +56,14 @@ class Sweatshop
     function registerWorker($queue, $topic = '', $worker = NULL, $options = array())
     {
         $queue_class = Queue::toClassName($queue);
-        $injectedWorkers = $this->getDependencies(Worker::WORKER_TITLE_PREFIX);
 
+        $injectedWorkers = $this->getDependencies(Worker::WORKER_TITLE_PREFIX);
         $injectedTopicSlug = preg_replace("/[\/]/", ".", $topic);
-        $injectedWorker = isset($injectedWorkers[$injectedTopicSlug]) ? $injectedWorkers[$injectedTopicSlug] : null;
+        try {
+            $injectedWorker = $injectedWorkers[$injectedTopicSlug];
+        } catch (\InvalidArgumentException $ex){
+            $injectedWorker = null;
+        }
 
         $this->_workersDispatcher->registerWorker($queue_class, $topic, $worker, $injectedWorker, $options);
     }
