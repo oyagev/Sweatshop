@@ -68,14 +68,8 @@ class RabbitmqQueue extends Queue
             foreach ($workers as $worker) {
                 $worker_queue_name = get_class($this) . ':' . get_class($worker);
                 $channel = $this->getChannel();
-
-                try {
-                    $channel->queue_declare($worker_queue_name, false, true, false, false);
-                    $channel->queue_bind($worker_queue_name, $this->getExchangeName(), $topic);
-                } catch (\Exception $e) {
-                    echo($e);
-                    exit;
-                }
+                $channel->queue_declare($worker_queue_name, false, true, false, false);
+                $channel->queue_bind($worker_queue_name, $this->getExchangeName(), $topic);
 
                 array_push($this->_queues, array(
                     'queue' => $worker_queue_name,
