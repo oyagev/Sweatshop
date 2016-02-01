@@ -32,8 +32,9 @@ class RabbitmqQueue extends Queue
 
     function __destruct()
     {
-        //$this->getChannel()->close();
-        $this->getConnection()->close();
+        if ($this->_conn) {
+            $this->getConnection()->close();
+        }
         parent::__destruct();
     }
 
