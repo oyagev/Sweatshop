@@ -44,7 +44,7 @@ abstract class Queue implements MessageableInterface{
 	}
 	
 	public function __destruct(){
-		$this->getLogger()->debug(sprintf('Queue "%s": tearing down',get_class($this)));
+		//$this->getLogger()->debug(sprintf('Queue "%s": tearing down',get_class($this)));
 	}
 	
 	function setDependencies(Container $di){

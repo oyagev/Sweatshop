@@ -29,8 +29,9 @@ class RabbitmqQueue extends Queue{
 	}
 
 	function __destruct(){
-		//$this->getChannel()->close();
-		$this->getConnection()->close();
+		if ($this->_conn){
+			$this->getConnection()->close();
+		}
 		parent::__destruct();
 	}
 
@@ -42,11 +43,6 @@ class RabbitmqQueue extends Queue{
             $this->getExchangeName(),
             $message->getTopic()
         );
-
-        /*
-    		$exchange = $this->getExchange();
-	    	$message = $exchange->publish(serialize($message), $message->getTopic(), AMQP_NOPARAM, array('delivery_mode'=>2) );
-		*/
 	}
 
 	function _doRegisterWorker($topic, Worker $worker){
