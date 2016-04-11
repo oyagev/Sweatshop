@@ -1,4 +1,5 @@
 <?php
+
 namespace Sweatshop\Queue;
 
 use Monolog\Logger;
@@ -40,18 +41,21 @@ class RabbitmqQueue extends Queue
 
     function _doPushMessage(Message $message)
     {
-        $msg = new AMQPMessage(serialize($message), array('delivery_mode' => 2));
+        // serialize to array -> json
+        $msgJson = array(
+            'params' => $message->getParams(),
+            'id' => $message->getId(),
+            'originalDispatcher' => $message->getOriginalDispatcher(),
+            'topic' => $message->getTopic()
+        );
+
+        $msg = new AMQPMessage(json_encode($message), array('delivery_mode' => 2));
         $channel = $this->getChannel();
         $channel->basic_publish(
             $msg,
             $this->getExchangeName(),
             $message->getTopic()
         );
-
-        /*
-    		$exchange = $this->getExchange();
-	    	$message = $exchange->publish(serialize($message), $message->getTopic(), AMQP_NOPARAM, array('delivery_mode'=>2) );
-		*/
     }
 
     function _doRegisterWorker($topic, Worker $worker)
@@ -86,18 +90,19 @@ class RabbitmqQueue extends Queue
                 $queue = $q['queue'];
                 $worker = $q['worker'];
 
+                /* @var $message AMQPMessage */
                 $message = $channel->basic_get($queue);
-                //$message = $queue->get();
+
                 if ($message) {
-                    if (@!$workload = unserialize($message->body)) {
-                        $this->getLogger()->info("Sweatshop Error: Unable to process message due to corrupt serialization - " . $message->body . " || " . serialize($message));
-                        $results = array();
-                    } elseif ($worker instanceof Worker) {
-                        $results = $worker->execute($workload);
-                    } else {
-                        $results = array();
-                        //TODO: Log error
+                    if (!$worker instanceof Worker) {
+                        throw new \Exception("Not a worker"); // TODO: add worker name
                     }
+
+                    $sweatshopWorkload = $message->getBody(); // throws exception if corrupt
+                    var_dump($sweatshopWorkload);
+    
+                    $sweatshopWorkload = $this->convertToSweatshopMsg($message);
+                    $results = $worker->execute($sweatshopWorkload);
 
                     $channel->basic_ack($message->delivery_info['delivery_tag']);
                     $pollingDelay = max($pollingDelay / 2, $this->_options['polling_delay_min']);
@@ -110,6 +115,31 @@ class RabbitmqQueue extends Queue
         }
     }
 
+    /**
+     * @param AMQPMessage $message
+     * @return Message
+     * @throws \Exception
+     *
+     * This is regarding switching from serialization of Messages using to php to using json
+     * TODO: This method should actually be inside \PhpAmqpLib\Message\AMQPMessage(Be ware, this class has lots of usages) as getBody.
+     * TODO: $body should be a private member
+     * TODO: In order to do this, we must fork videlalvaro/php-amqplib(See composer.json) and customize to our needs.
+     * |-> \PhpAmqpLib\Message\AMQPMessage Should have a private $body member with getBody()[return Message] and setBody(Message $message)
+     *
+     */
+    private function convertToSweatshopMsg(AMQPMessage $message)
+    {
+        $data = json_decode($message->body);
+        if ($data == null) {
+            throw new \Exception("Unable To Deserialize.");
+        }
+
+        $msg = new Message($data->topic, $data->params, $data->originalDispatcher);
+        $msg->setId($data->id);
+
+        return $msg;
+    }
+
     public function _executeWorkerBackground($msg)
     {
         $message = unserialize($msg->body);
@@ -120,7 +150,6 @@ class RabbitmqQueue extends Queue
      */
     private function getConnection()
     {
-        //var_dump($this->_options);exit;
         if (!$this->_conn) {
             $this->_conn = new AMQPConnection(
                 $this->_options['host'],
@@ -128,8 +157,6 @@ class RabbitmqQueue extends Queue
                 $this->_options['user'],
                 $this->_options['password']
             );
-            //$this->_conn->connect();
-            //TODO: check if connection is alive
         }
 
         return $this->_conn;
