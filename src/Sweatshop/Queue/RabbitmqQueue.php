@@ -49,7 +49,7 @@ class RabbitmqQueue extends Queue
             'topic' => $message->getTopic()
         );
 
-        $msg = new AMQPMessage(json_encode($message), array('delivery_mode' => 2));
+        $msg = new AMQPMessage(json_encode($msgJson), array('delivery_mode' => 2));
         $channel = $this->getChannel();
         $channel->basic_publish(
             $msg,
