@@ -98,10 +98,7 @@ class RabbitmqQueue extends Queue
                         throw new \Exception("Not a worker"); // TODO: add worker name
                     }
 
-                    $sweatshopWorkload = $message->getBody(); // throws exception if corrupt
-                    var_dump($sweatshopWorkload);
-    
-                    $sweatshopWorkload = $this->convertToSweatshopMsg($message);
+                    $sweatshopWorkload = $this->convertToSweatshopMsg($message); // throws exception if corrupt
                     $results = $worker->execute($sweatshopWorkload);
 
                     $channel->basic_ack($message->delivery_info['delivery_tag']);
@@ -124,7 +121,7 @@ class RabbitmqQueue extends Queue
      * TODO: This method should actually be inside \PhpAmqpLib\Message\AMQPMessage(Be ware, this class has lots of usages) as getBody.
      * TODO: $body should be a private member
      * TODO: In order to do this, we must fork videlalvaro/php-amqplib(See composer.json) and customize to our needs.
-     * |-> \PhpAmqpLib\Message\AMQPMessage Should have a private $body member with getBody()[return Message] and setBody(Message $message)
+     * |-> \PhpAmqpLib\Message\AMQPMessage Should have a private $body member
      *
      */
     private function convertToSweatshopMsg(AMQPMessage $message)
